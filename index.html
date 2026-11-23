@@ -1,1253 +1,728 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ISLAND ESCAPE</title>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<title>DEAD BY STEINLIGHT</title>
+<script src="/socket.io/socket.io.js"></script>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#09121b;color:#eaf2f5;
- font-family:Arial,sans-serif;overflow:hidden
-}
+:root{--red:#b52b35;--dark:#090b0e;--panel:#14191f;--muted:#9ba4ad}
+body{margin:0;background:#080a0d;color:#eee;font-family:Arial,sans-serif;overflow:hidden}
 button,input{font:inherit}
-button{
- background:#d49b48;color:#151b20;border:0;
- padding:12px 20px;border-radius:7px;
- font-weight:bold;cursor:pointer
-}
-button:hover{filter:brightness(1.13)}
-button:disabled{opacity:.35;cursor:not-allowed}
-input{
- background:#101e29;color:white;border:1px solid #344b5b;
- padding:12px;border-radius:7px;width:100%;outline:none
-}
-.panel{
- background:#132330;border:1px solid #2d4351;
- border-radius:12px;padding:24px;
- box-shadow:0 15px 50px #0008
-}
-.screen{
- position:absolute;inset:0;display:flex;
- justify-content:center;align-items:center;padding:20px
-}
-.hidden{display:none!important}
-.menu{width:min(460px,100%)}
-h1{font-size:36px;letter-spacing:3px;margin:0 0 8px}
-h2{margin:0 0 16px}
-.subtitle{color:#9db0bd;margin-bottom:25px}
-.field{margin:15px 0}
-.field label{display:block;color:#9fb3c0;font-size:13px;margin-bottom:7px}
-.actions{display:grid;gap:10px}
-.secondary{background:#263c4b;color:white}
-.status{
- min-height:22px;color:#e7b969;font-size:13px;
- margin-top:15px;overflow-wrap:anywhere
-}
-#lobbyPlayers{display:grid;gap:8px;margin:18px 0}
-.playerRow{
- background:#1d3240;padding:11px 13px;border-radius:7px;
- display:flex;justify-content:space-between;align-items:center
-}
-.small{font-size:12px;color:#9db0bd}
-#gameScreen{position:absolute;inset:0;display:none}
-#gameCanvas{width:100%;height:100%;display:block}
-#hud{
- position:absolute;left:15px;top:15px;
- width:min(330px,calc(100% - 30px));
- background:#101c26eF;border:1px solid #526775;
- border-radius:10px;padding:13px;pointer-events:none
-}
-#hudTitle{font-weight:bold;font-size:16px;margin-bottom:6px}
-#objective{font-size:13px;color:#d6e0e5;line-height:1.5}
-#taskList{margin-top:8px;font-size:12px;color:#a9bdc8;line-height:1.6}
-#playerList{
- position:absolute;right:15px;top:15px;
- background:#101c26eF;border:1px solid #526775;
- border-radius:10px;padding:12px;min-width:155px;
- font-size:12px;pointer-events:none
-}
-#playerList strong{display:block;margin-bottom:7px}
-#controls{
- position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
- background:#101c26dd;border:1px solid #526775;
- border-radius:8px;padding:9px 14px;
- font-size:12px;color:#c4d1d8;white-space:nowrap;
- pointer-events:none
-}
-#toast{
- position:absolute;left:50%;top:18%;
- transform:translateX(-50%);
- background:#101c26ed;border:1px solid #d49b48;
- padding:12px 20px;border-radius:8px;
- display:none;text-align:center;pointer-events:none
-}
-#endScreen{background:#09121bf2;z-index:5}
-#endScreen .panel{text-align:center;max-width:420px;width:100%}
-#roomCode{font-weight:bold;letter-spacing:2px}
-@media(max-width:600px){
- h1{font-size:28px}
- .panel{padding:18px}
- #playerList{top:auto;bottom:65px;right:10px}
- #controls{font-size:10px;bottom:10px}
+button{background:#8e202b;color:white;border:1px solid #d34b55;padding:13px 20px;cursor:pointer;font-weight:bold;letter-spacing:1px}
+button:hover{background:#b52b35}
+button:disabled{opacity:.4;cursor:not-allowed}
+input{background:#080b0f;color:white;border:1px solid #46505a;padding:13px;width:100%;outline:none}
+input:focus{border-color:#bd3944}
+.screen{display:none;position:absolute;inset:0}
+.screen.active{display:flex}
+#menu{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#252b30 0%,#0c1014 55%,#050607 100%)}
+.menuBox{width:min(460px,92vw);background:#10151beF;border:1px solid #414a52;padding:32px;box-shadow:0 20px 80px #000}
+.logo{text-align:center;margin-bottom:28px}
+.logo h1{font-size:clamp(34px,7vw,55px);line-height:.92;margin:0;color:#eee;letter-spacing:4px;text-shadow:3px 3px #8c1c29}
+.logo p{letter-spacing:5px;color:#aeb6bd;font-size:11px}
+.field{margin:14px 0}
+.field label{display:block;font-size:11px;color:#aeb6bd;letter-spacing:2px;margin-bottom:7px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.actions button{width:100%}
+#status{min-height:22px;color:#e18b8b;font-size:13px;margin-top:15px;text-align:center}
+#lobby{align-items:center;justify-content:center;background:radial-gradient(circle,#1b2229,#07090b)}
+.lobbyBox{width:min(600px,94vw);padding:30px;background:#11171d;border:1px solid #45505a}
+.lobbyBox h2{letter-spacing:4px;margin-top:0}
+.roomCode{font-size:32px;letter-spacing:8px;color:#f0c6c6;text-align:center;padding:18px;background:#080b0e;margin:15px 0}
+#players{list-style:none;padding:0;margin:18px 0}
+#players li{padding:12px;background:#202830;margin:6px 0;border-left:3px solid #a72a36}
+.lobbyBottom{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.small{font-size:12px;color:var(--muted)}
+#game{background:#101812}
+#world{width:100%;height:100%;display:block}
+#hud{position:absolute;inset:0;pointer-events:none}
+.hudTop{position:absolute;top:15px;left:15px;right:15px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.hudPanel{background:#090d0de8;border:1px solid #59615b;padding:12px 15px;min-width:150px}
+.hudTitle{font-size:10px;letter-spacing:2px;color:#b6c0b6;margin-bottom:6px}
+#roleText{font-size:19px;font-weight:bold}
+#objective{font-size:13px;max-width:280px;line-height:1.5}
+#taskPanel{position:absolute;left:15px;bottom:15px;width:250px;background:#090d0de8;border:1px solid #59615b;padding:13px}
+.task{font-size:12px;margin:9px 0;color:#d6ddd6}
+.bar{height:5px;background:#303832;margin-top:4px}
+.bar span{display:block;height:100%;background:#b13b43;width:0%}
+#staminaWrap{position:absolute;right:15px;bottom:20px;width:190px;background:#090d0de8;padding:12px;border:1px solid #59615b}
+#stamina{height:9px;background:#303832;margin-top:7px}
+#stamina span{height:100%;display:block;background:#d6d1a1;width:100%}
+#notice{position:absolute;top:105px;left:50%;transform:translateX(-50%);background:#090d0de8;padding:12px 20px;border:1px solid #666;opacity:0;transition:opacity .2s;text-align:center}
+#notice.show{opacity:1}
+#help{position:absolute;right:15px;top:100px;background:#090d0de8;padding:12px;border:1px solid #505850;font-size:11px;line-height:1.8;color:#cbd1cb}
+#gameOver{align-items:center;justify-content:center;background:#050607eF;z-index:10}
+.overBox{text-align:center;padding:40px;background:#14191f;border:1px solid #6c3439;width:min(500px,90vw)}
+.overBox h1{font-size:42px;letter-spacing:4px}
+#overTitle{color:#d34a55}
+#overMessage{color:#c0c6ca;line-height:1.5;margin-bottom:25px}
+@media(max-width:650px){
+ #help{display:none}
+ #taskPanel{width:190px;bottom:12px;left:8px}
+ #staminaWrap{width:140px;right:8px;bottom:12px}
+ .hudTop{top:8px;left:8px;right:8px}
+ .hudPanel{min-width:0;padding:9px}
+ #objective{max-width:160px}
 }
 </style>
 </head>
 <body>
 
-<div id="menuScreen" class="screen">
- <div class="panel menu">
-  <h1>ISLAND ESCAPE</h1>
-  <div class="subtitle">Escape the island. Work together. Stay hidden.</div>
-
-  <div class="field">
-   <label for="playerName">YOUR PLAYER NAME</label>
-   <input id="playerName" maxlength="18" placeholder="Enter your name">
+<section id="menu" class="screen active">
+ <div class="menuBox">
+  <div class="logo">
+   <h1>DEAD BY<br>STEINLIGHT</h1>
+   <p>ONE ISLAND. ONE HUNTER. NO EASY WAY OUT.</p>
   </div>
-
+  <div class="field">
+   <label>PLAYER NAME</label>
+   <input id="name" maxlength="18" placeholder="Enter your name" value="">
+  </div>
   <div class="actions">
-   <button onclick="createRoom()">CREATE ROOM</button>
-   <div class="field">
-    <label for="joinCode">ROOM CODE</label>
-    <input id="joinCode" placeholder="Paste host room code">
-   </div>
-   <button class="secondary" onclick="joinRoom()">JOIN ROOM</button>
+   <button id="createBtn">CREATE ROOM</button>
+   <button id="joinBtn">JOIN ROOM</button>
   </div>
-  <div id="menuStatus" class="status">Ready.</div>
-  <div class="small">Requires an internet connection for multiplayer.</div>
- </div>
-</div>
-
-<div id="lobbyScreen" class="screen hidden">
- <div class="panel menu">
-  <h2>GAME LOBBY</h2>
-  <div class="small">Give this room code to your friends:</div>
   <div class="field">
-   <input id="displayRoomCode" readonly>
-   <button class="secondary" style="width:100%;margin-top:8px" onclick="copyRoomCode()">COPY ROOM CODE</button>
+   <label>ROOM CODE</label>
+   <input id="roomCodeInput" maxlength="6" placeholder="ENTER CODE">
   </div>
+  <div id="status">Connecting to game server...</div>
+  <p class="small" style="text-align:center;margin-top:20px">MULTIPLAYER HORROR SURVIVAL</p>
+ </div>
+</section>
+
+<section id="lobby" class="screen">
+ <div class="lobbyBox">
+  <h2>ROOM LOBBY</h2>
+  <div class="small">SHARE THIS CODE WITH YOUR FRIENDS</div>
+  <div class="roomCode" id="roomCode">------</div>
   <div class="small">PLAYERS</div>
-  <div id="lobbyPlayers"></div>
-  <button id="startButton" style="width:100%" onclick="startGame()" disabled>START GAME</button>
-  <div id="lobbyStatus" class="status">Waiting for players...</div>
-  <button class="secondary" style="width:100%;margin-top:12px" onclick="leaveGame()">LEAVE ROOM</button>
+  <ul id="players"></ul>
+  <div class="lobbyBottom">
+   <span class="small" id="lobbyCount">Waiting for players...</span>
+   <button id="startBtn">START GAME</button>
+  </div>
+  <p class="small">At least 2 players are required. Maximum 5.</p>
+  <button id="leaveBtn" style="width:100%;background:#343b42;border-color:#59616b;margin-top:12px">LEAVE ROOM</button>
  </div>
-</div>
+</section>
 
-<div id="gameScreen">
- <canvas id="gameCanvas"></canvas>
+<section id="game" class="screen">
+ <canvas id="world"></canvas>
  <div id="hud">
-  <div id="hudTitle">ISLAND ESCAPE</div>
-  <div id="objective">Loading...</div>
-  <div id="taskList"></div>
+  <div class="hudTop">
+   <div class="hudPanel">
+    <div class="hudTitle">YOUR ROLE</div>
+    <div id="roleText">ESCAPEE</div>
+   </div>
+   <div class="hudPanel">
+    <div class="hudTitle">OBJECTIVE</div>
+    <div id="objective">Complete the repairs and escape by boat.</div>
+   </div>
+  </div>
+  <div id="help">
+   <b>CONTROLS</b><br>
+   WASD / ARROWS: Move<br>
+   SHIFT: Sprint<br>
+   CTRL: Crouch<br>
+   E: Interact / Hide<br>
+   <span id="hunterHelp">Q: Sprint ability<br>R: Tracking pulse<br>F: Disrupt task</span>
+  </div>
+  <div id="taskPanel">
+   <div class="hudTitle">ESCAPE PROGRESS</div>
+   <div id="tasks"></div>
+  </div>
+  <div id="staminaWrap">
+   <div class="hudTitle">STAMINA</div>
+   <div id="stamina"><span></span></div>
+  </div>
+  <div id="notice"></div>
  </div>
- <div id="playerList"></div>
- <div id="controls">WASD: Move | SHIFT: Sprint | CTRL: Crouch | E: Interact / Hide</div>
- <div id="toast"></div>
-</div>
+</section>
 
-<div id="endScreen" class="screen hidden">
- <div class="panel">
-  <h1 id="endTitle">GAME OVER</h1>
-  <p id="endText"></p>
-  <button onclick="returnToMenu()">RETURN TO MENU</button>
+<section id="gameOver" class="screen">
+ <div class="overBox">
+  <div class="small">MATCH COMPLETE</div>
+  <h1 id="overTitle">ESCAPE</h1>
+  <div id="overMessage"></div>
+  <button id="backBtn">BACK TO MENU</button>
  </div>
-</div>
+</section>
 
 <script>
 "use strict";
 
-/* =========================================
-   ISLAND ESCAPE
-   Single-file PeerJS multiplayer game
-========================================= */
+const socket = io();
+const $ = id => document.getElementById(id);
 
-const $=id=>document.getElementById(id);
-
-const WORLD={w:2000,h:1400};
-const MAX_PLAYERS=5;
-
-let peer=null;
-let hostConnection=null;
-let connections=[];
-let myId=null;
-let myName="";
-let isHost=false;
-
-let players=[];
-let game=null;
-let running=false;
-let lastFrame=0;
-let sendTimer=0;
-let inputTimer=0;
-let toastTimer=0;
-
-const canvas=$("gameCanvas");
-const ctx=canvas.getContext("2d");
-
-const localInput={
- up:false,down:false,left:false,right:false,
- sprint:false,crouch:false,interact:false
-};
-
-const TASK_DEFINITIONS=[
- {name:"Repair the generator",x:430,y:380},
- {name:"Repair the radio",x:1450,y:370},
- {name:"Repair the boat engine",x:1530,y:1050},
- {name:"Repair the boat hull",x:1320,y:1110}
-];
-
-const HIDING_SPOTS=[
- {x:600,y:290,w:55,h:45,name:"Storage locker"},
- {x:980,y:500,w:65,h:45,name:"Wardrobe"},
- {x:1220,y:760,w:60,h:45,name:"Bushes"},
- {x:540,y:930,w:65,h:45,name:"Wardrobe"},
- {x:1650,y:780,w:65,h:45,name:"Storage locker"},
- {x:900,y:1120,w:75,h:45,name:"Bushes"}
-];
-
-const BUILDINGS=[
- {x:270,y:210,w:430,h:300,name:"MAIN HOUSE"},
- {x:850,y:200,w:400,h:290,name:"WORKSHOP"},
- {x:330,y:730,w:390,h:300,name:"DORMITORY"},
- {x:1050,y:690,w:360,h:300,name:"STORAGE"}
-];
-
-const TREES=[
- [160,180],[210,530],[760,160],[790,600],[1500,170],
- [1770,280],[1800,570],[1650,950],[1750,1190],
- [220,1150],[850,1250],[1100,570],[700,1050],
- [1350,200],[1450,550],[930,850],[250,650],
- [1830,850],[1550,500],[120,950],[500,1200],
- [1150,1150],[760,850],[350,570],[1650,350]
-];
-
-/* =========================================
-   SCREEN AND STATUS
-========================================= */
-
-function showScreen(name){
- $("menuScreen").classList.toggle("hidden",name!=="menu");
- $("lobbyScreen").classList.toggle("hidden",name!=="lobby");
- $("gameScreen").style.display=name==="game"?"block":"none";
- $("endScreen").classList.toggle("hidden",name!=="end");
+const screens = ["menu","lobby","game","gameOver"];
+function showScreen(id){
+  screens.forEach(s => $(s).classList.toggle("active",s===id));
 }
 
-function setStatus(message){
- $("menuStatus").textContent=message;
- $("lobbyStatus").textContent=message;
-}
+let myId = null;
+let myRole = null;
+let room = null;
+let isHost = false;
+let gameState = null;
+let mapInfo = {width:2800,height:2200};
+let obstacles = [];
+let hidingSpots = [];
+let keys = {};
+let lastInput = {};
+let noticeTimer = null;
+let camera = {x:0,y:0};
+let animation = 0;
 
-function setLobbyStatus(message){
- $("lobbyStatus").textContent=message;
+const canvas = $("world");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1,2);
+  canvas.width = Math.floor(innerWidth*dpr);
+  canvas.height = Math.floor(innerHeight*dpr);
+  canvas.style.width = innerWidth+"px";
+  canvas.style.height = innerHeight+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener("resize",resize);
+resize();
+
+function status(message){
+  $("status").textContent = message;
 }
 
 function getName(){
- const name=$("playerName").value.trim();
- if(!name){
-  setStatus("Enter a player name first.");
-  $("playerName").focus();
-  return null;
- }
- return name.slice(0,18);
+  const name = $("name").value.trim();
+  if(!name){
+    status("Enter a player name first.");
+    $("name").focus();
+    return null;
+  }
+  return name.slice(0,18);
 }
 
-function copyRoomCode(){
- const code=$("displayRoomCode").value;
- if(!code)return;
- if(navigator.clipboard&&navigator.clipboard.writeText){
-  navigator.clipboard.writeText(code)
-   .then(()=>setLobbyStatus("Room code copied!"))
-   .catch(()=>setLobbyStatus("Copy the room code manually."));
- }else{
-  $("displayRoomCode").select();
-  setLobbyStatus("Press Ctrl+C to copy.");
- }
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
 }
-
-function showToast(message){
- $("toast").textContent=message;
- $("toast").style.display="block";
- clearTimeout(toastTimer);
- toastTimer=setTimeout(()=>$("toast").style.display="none",2200);
-}
-
-/* =========================================
-   NETWORK CLEANUP
-========================================= */
-
-function cleanupNetwork(){
- running=false;
-
- if(hostConnection){
-  try{hostConnection.close()}catch(e){}
-  hostConnection=null;
- }
-
- connections.forEach(c=>{
-  try{c.close()}catch(e){}
- });
- connections=[];
-
- if(peer){
-  try{peer.destroy()}catch(e){}
-  peer=null;
- }
-
- myId=null;
- isHost=false;
- players=[];
- game=null;
-}
-
-function leaveGame(){
- cleanupNetwork();
- showScreen("menu");
- setStatus("You left the room.");
-}
-
-function returnToMenu(){
- cleanupNetwork();
- showScreen("menu");
- setStatus("Ready.");
-}
-
-/* =========================================
-   PLAYER CREATION
-========================================= */
-
-function createPlayer(id,name){
- return {
-  id,
-  name,
-  x:300+Math.random()*100,
-  y:600+Math.random()*100,
-  role:"escapee",
-  alive:true,
-  escaped:false,
-  hidden:false,
-  input:{},
-  prevInteract:false,
-  actionCooldown:0,
-  taskProgress:0,
-  facing:0
- };
-}
-
-function newGame(){
- return {
-  started:true,
-  ended:false,
-  time:0,
-  tasks:TASK_DEFINITIONS.map(t=>({
-   name:t.name,x:t.x,y:t.y,done:false
-  })),
-  boat:{x:1510,y:1190},
-  message:"Complete all four repairs and escape by boat."
- };
-}
-
-/* =========================================
-   HOST ROOM CREATION
-========================================= */
 
 function createRoom(){
- const name=getName();
- if(!name)return;
-
- if(!window.Peer){
-  setStatus("PeerJS failed to load. Check your internet.");
-  return;
- }
-
- cleanupNetwork();
-
- myName=name;
- setStatus("Connecting to PeerJS...");
-
- try{
-  peer=new Peer();
- }catch(error){
-  setStatus("Could not create PeerJS connection.");
-  console.error(error);
-  return;
- }
-
- peer.on("open",id=>{
-  myId=id;
-  isHost=true;
-
-  players=[createPlayer(id,myName)];
-  game=newGame();
-  game.started=false;
-
-  $("displayRoomCode").value=id;
-  $("startButton").disabled=true;
-
-  showScreen("lobby");
-  refreshLobby();
-  setLobbyStatus("Room created. Waiting for players...");
-  console.log("Host registered with PeerJS:",id);
- });
-
- peer.on("connection",conn=>{
-  console.log("Incoming connection:",conn.peer);
-
-  connections.push(conn);
-
-  conn.on("open",()=>{
-   console.log("Incoming connection opened:",conn.peer);
-   try{
-    conn.send({type:"welcome"});
-   }catch(error){
-    console.error("Welcome message failed:",error);
-   }
-  });
-
-  conn.on("data",data=>{
-   handleHostData(conn,data);
-  });
-
-  conn.on("close",()=>{
-   console.log("Connection closed:",conn.peer);
-   connections=connections.filter(c=>c!==conn);
-   players=players.filter(p=>p.id!==conn.peer);
-   refreshLobby();
-   sendLobby();
-  });
-
-  conn.on("error",error=>{
-   console.error("Incoming connection error:",error);
-   setLobbyStatus("A player connection encountered an error.");
-  });
- });
-
- peer.on("disconnected",()=>{
-  setLobbyStatus("Disconnected from PeerJS. Reconnecting...");
-  if(peer&&!peer.destroyed){
-   peer.reconnect();
+  const name = getName();
+  if(!name)return;
+  if(!socket.connected){
+    status("Cannot reach the game server.");
+    return;
   }
- });
-
- peer.on("error",error=>{
-  console.error("Host PeerJS error:",error);
-  setLobbyStatus("PeerJS error: "+error.type);
- });
-
- peer.on("close",()=>{
-  console.log("Host peer closed.");
- });
+  status("Creating room...");
+  socket.emit("createRoom",{name},result=>{
+    if(!result || !result.ok){
+      status(result?.error || "Could not create room.");
+      return;
+    }
+    myId = socket.id;
+    room = result.code;
+    isHost = true;
+    $("roomCode").textContent = room;
+    showScreen("lobby");
+  });
 }
-
-/* =========================================
-   GUEST ROOM JOINING
-========================================= */
 
 function joinRoom(){
- const name=getName();
- if(!name)return;
-
- const code=$("joinCode").value.trim();
-
- if(!code){
-  setStatus("Enter a room code.");
-  return;
- }
-
- if(!window.Peer){
-  setStatus("PeerJS failed to load. Check your internet.");
-  return;
- }
-
- cleanupNetwork();
-
- myName=name;
- setStatus("Connecting to PeerJS...");
-
- try{
-  peer=new Peer();
- }catch(error){
-  setStatus("Could not create PeerJS connection.");
-  console.error(error);
-  return;
- }
-
- peer.on("open",id=>{
-  myId=id;
-  isHost=false;
-
-  setStatus("Finding host...");
-
-  console.log("Guest registered with PeerJS:",id);
-  console.log("Connecting to room:",code);
-
-  hostConnection=peer.connect(code,{reliable:true});
-
-  if(!hostConnection){
-   setStatus("Could not create connection to host.");
-   return;
+  const name = getName();
+  if(!name)return;
+  const code = $("roomCodeInput").value.trim().toUpperCase();
+  if(!code){
+    status("Enter a room code.");
+    return;
   }
-
-  hostConnection.on("open",()=>{
-   console.log("Connected to host:",code);
-   setStatus("Connected! Joining lobby...");
-
-   hostConnection.send({
-    type:"join",
-    name:myName
-   });
+  status("Joining room...");
+  socket.emit("joinRoom",{name,code},result=>{
+    if(!result || !result.ok){
+      status(result?.error || "Could not join room.");
+      return;
+    }
+    myId = socket.id;
+    room = result.code;
+    isHost = false;
+    $("roomCode").textContent = room;
+    showScreen("lobby");
   });
-
-  hostConnection.on("data",data=>{
-   handleGuestData(data);
-  });
-
-  hostConnection.on("close",()=>{
-   console.log("Host connection closed.");
-   if(running){
-    finishLocalGame("DISCONNECTED","The host connection was lost.");
-   }else{
-    setStatus("Disconnected from host.");
-   }
-  });
-
-  hostConnection.on("error",error=>{
-   console.error("Guest connection error:",error);
-   setStatus("Connection failed: "+error.type);
-  });
-
-  setTimeout(()=>{
-   if(hostConnection&&!hostConnection.open){
-    setStatus("Could not connect. Check the room code and host connection.");
-   }
-  },15000);
- });
-
- peer.on("disconnected",()=>{
-  setStatus("Disconnected from PeerJS server.");
-  if(peer&&!peer.destroyed)peer.reconnect();
- });
-
- peer.on("error",error=>{
-  console.error("Guest PeerJS error:",error);
-  setStatus("PeerJS error: "+error.type);
- });
 }
 
-/* =========================================
-   HOST MESSAGE HANDLING
-========================================= */
+$("createBtn").onclick = createRoom;
+$("joinBtn").onclick = joinRoom;
 
-function handleHostData(conn,data){
- if(!isHost||!data)return;
+$("roomCodeInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter")joinRoom();
+});
+$("name").addEventListener("keydown",e=>{
+  if(e.key==="Enter")createRoom();
+});
 
- if(data.type==="join"){
-  if(game&&game.started){
-   conn.send({type:"full"});
-   return;
-  }
+socket.on("connect",()=>{
+  myId = socket.id;
+  status("Connected. Create a room or join one.");
+});
 
-  if(players.length>=MAX_PLAYERS){
-   conn.send({type:"full"});
-   return;
-  }
+socket.on("disconnect",()=>{
+  status("Disconnected from the server. Refresh to reconnect.");
+  showScreen("menu");
+});
 
-  let player=players.find(p=>p.id===conn.peer);
+socket.on("connect_error",()=>{
+  status("Could not connect to the server.");
+});
 
-  if(!player){
-   const safeName=String(data.name||"Player").slice(0,18);
-   player=createPlayer(conn.peer,safeName);
-   players.push(player);
-   console.log("Player joined:",safeName);
-  }
-
-  sendLobby();
-  refreshLobby();
- }
-
- if(data.type==="input"){
-  const p=players.find(p=>p.id===conn.peer);
-  if(p&&p.alive&&!p.escaped){
-   p.input=data.input||{};
-  }
- }
-}
-
-/* =========================================
-   GUEST MESSAGE HANDLING
-========================================= */
-
-function handleGuestData(data){
- if(!data)return;
-
- if(data.type==="welcome"){
-  console.log("Host welcomed guest.");
- }
-
- if(data.type==="lobby"){
-  $("lobbyPlayers").innerHTML=data.players.map(p=>
-   '<div class="playerRow"><span>'+escapeHtml(p.name)+'</span></div>'
+socket.on("lobby",data=>{
+  room = data.code;
+  isHost = data.host === socket.id;
+  $("roomCode").textContent = data.code;
+  $("players").innerHTML = data.players.map(p=>
+    `<li>${escapeHTML(p.name)} ${p.id===data.host?"<span style='color:#e6bd78'> • HOST</span>":""}</li>`
   ).join("");
-
-  $("displayRoomCode").value=$("joinCode").value.trim();
+  $("lobbyCount").textContent = `${data.players.length}/5 players`;
+  $("startBtn").disabled = !isHost || data.players.length < 2;
+  $("startBtn").textContent = isHost ? "START GAME" : "WAITING FOR HOST";
   showScreen("lobby");
-  $("startButton").disabled=true;
-  setLobbyStatus("Connected to host. Waiting for the game to start.");
- }
-
- if(data.type==="full"){
-  setStatus("That room is full or the game has already started.");
- }
-
- if(data.type==="start"){
-  game=data.game;
-  players=game.players;
-  beginGame();
- }
-
- if(data.type==="state"){
-  game=data.game;
-  players=game.players;
-
-  if(!running&&game.started&&!game.ended){
-   beginGame();
-  }
-
-  updateHUD();
- }
-
- if(data.type==="end"){
-  finishLocalGame(data.title,data.text);
- }
-}
-
-/* =========================================
-   LOBBY SYNCHRONISATION
-========================================= */
-
-function refreshLobby(){
- if(!isHost)return;
-
- $("lobbyPlayers").innerHTML=players.map(p=>
-  '<div class="playerRow"><span>'+escapeHtml(p.name)+'</span>'+
-  '<span class="small">'+(p.id===myId?"HOST":"PLAYER")+'</span></div>'
- ).join("");
-
- $("startButton").disabled=players.length<2;
-
- if(players.length<2){
-  setLobbyStatus("Waiting for at least one more player...");
- }else{
-  setLobbyStatus(players.length+" players connected. Ready to start!");
- }
-
- sendLobby();
-}
-
-function sendLobby(){
- const data={
-  type:"lobby",
-  players:players.map(p=>({id:p.id,name:p.name}))
- };
-
- connections.forEach(c=>{
-  if(c.open){
-   try{c.send(data)}catch(error){
-    console.error("Lobby send failed:",error);
-   }
-  }
- });
-}
-
-/* =========================================
-   START GAME
-========================================= */
-
-function startGame(){
- if(!isHost||players.length<2)return;
-
- game=newGame();
-
- players.forEach((p,i)=>{
-  p.x=300+(i%3)*90;
-  p.y=600+Math.floor(i/3)*100;
-  p.alive=true;
-  p.escaped=false;
-  p.hidden=false;
-  p.taskProgress=0;
-  p.actionCooldown=0;
-  p.prevInteract=false;
-  p.input={};
-  p.role="escapee";
- });
-
- const hunterIndex=Math.floor(Math.random()*players.length);
- players[hunterIndex].role="hunter";
-
- game.started=true;
- game.message="Escapees: repair the boat. Hunter: stop them.";
-
- const packet={
-  type:"start",
-  game:serialiseGame()
- };
-
- connections.forEach(c=>{
-  if(c.open){
-   try{c.send(packet)}catch(error){
-    console.error("Start message failed:",error);
-   }
-  }
- });
-
- beginGame();
-}
-
-function serialiseGame(){
- return JSON.parse(JSON.stringify({
-  ...game,
-  players:players.map(p=>({...p,input:{}}))
- }));
-}
-
-function beginGame(){
- if(running)return;
-
- running=true;
- lastFrame=performance.now();
- sendTimer=0;
- inputTimer=0;
-
- showScreen("game");
- updateHUD();
- requestAnimationFrame(loop);
-}
-
-/* =========================================
-   INPUT
-========================================= */
-
-function updateKey(event,value){
- const key=event.key.toLowerCase();
-
- if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright",
-     " ","shift","control","e"].includes(key)){
-  event.preventDefault();
- }
-
- if(key==="w"||key==="arrowup")localInput.up=value;
- if(key==="s"||key==="arrowdown")localInput.down=value;
- if(key==="a"||key==="arrowleft")localInput.left=value;
- if(key==="d"||key==="arrowright")localInput.right=value;
- if(key==="shift")localInput.sprint=value;
- if(key==="control")localInput.crouch=value;
- if(key==="e")localInput.interact=value;
-}
-
-window.addEventListener("keydown",event=>{
- if(event.repeat)return;
- updateKey(event,true);
 });
 
-window.addEventListener("keyup",event=>{
- updateKey(event,false);
-});
-
-window.addEventListener("blur",()=>{
- Object.keys(localInput).forEach(k=>localInput[k]=false);
-});
-
-function sendInput(){
- if(!hostConnection||!hostConnection.open)return;
-
- try{
-  hostConnection.send({
-   type:"input",
-   input:{...localInput}
+$("startBtn").onclick = ()=>{
+  socket.emit("startGame",result=>{
+    if(!result?.ok)showNotice(result?.error || "Could not start game.");
   });
- }catch(error){
-  console.error("Input send failed:",error);
- }
+};
+
+$("leaveBtn").onclick = ()=>{
+  socket.emit("leaveRoom");
+  room = null;
+  isHost = false;
+  showScreen("menu");
+};
+
+socket.on("gameStarted",data=>{
+  mapInfo = data.map;
+  obstacles = data.obstacles || [];
+  hidingSpots = data.hidingSpots || [];
+  gameState = data.game;
+  myRole = gameState.players.find(p=>p.id===socket.id)?.role || "escapee";
+  $("roleText").textContent = myRole.toUpperCase();
+  $("roleText").style.color = myRole==="hunter"?"#ed626c":"#b7d6a7";
+  $("hunterHelp").style.display = myRole==="hunter"?"inline":"none";
+  $("objective").textContent = myRole==="hunter"
+    ? "Find and catch every escapee."
+    : "Repair the boat, collect fuel and escape.";
+  showScreen("game");
+  showNotice(myRole==="hunter"?"You are the Hunter.":"Repair the boat and escape!");
+  requestAnimationFrame(draw);
+});
+
+socket.on("state",data=>{
+  gameState = data;
+  updateHUD();
+});
+
+socket.on("notice",message=>showNotice(message));
+
+socket.on("gameOver",data=>{
+  $("overTitle").textContent = data.winner==="escapees"?"ESCAPEES WIN":"HUNTER WINS";
+  $("overTitle").style.color = data.winner==="escapees"?"#b6d69b":"#dc5962";
+  $("overMessage").textContent = data.message;
+  showScreen("gameOver");
+});
+
+$("backBtn").onclick = ()=>{
+  room = null;
+  gameState = null;
+  showScreen("menu");
+};
+
+function showNotice(message){
+  const el = $("notice");
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(()=>el.classList.remove("show"),2400);
 }
-
-/* =========================================
-   MAIN GAME LOOP
-========================================= */
-
-function loop(now){
- if(!running)return;
-
- const dt=Math.min((now-lastFrame)/1000,.05);
- lastFrame=now;
-
- if(isHost){
-  const hostPlayer=players.find(p=>p.id===myId);
-
-  if(hostPlayer&&hostPlayer.alive){
-   hostPlayer.input={...localInput};
-  }
-
-  updateHost(dt);
-
-  sendTimer+=dt;
-  if(sendTimer>=.08){
-   sendTimer=0;
-   sendState();
-  }
- }else{
-  inputTimer+=dt;
-  if(inputTimer>=.05){
-   inputTimer=0;
-   sendInput();
-  }
- }
-
- render();
- updateHUD();
-
- if(running)requestAnimationFrame(loop);
-}
-
-/* =========================================
-   HOST GAME SIMULATION
-========================================= */
-
-function updateHost(dt){
- if(!game||game.ended)return;
-
- game.time+=dt;
-
- for(const p of players){
-  if(!p.alive||p.escaped)continue;
-
-  const input=p.input||{};
-  p.actionCooldown=Math.max(0,p.actionCooldown-dt);
-
-  if(p.hidden){
-   if(input.interact&&!p.prevInteract){
-    p.hidden=false;
-    p.actionCooldown=.3;
-   }
-   p.prevInteract=!!input.interact;
-   continue;
-  }
-
-  let dx=(input.right?1:0)-(input.left?1:0);
-  let dy=(input.down?1:0)-(input.up?1:0);
-
-  const length=Math.hypot(dx,dy);
-  if(length>0){
-   dx/=length;
-   dy/=length;
-   p.facing=Math.atan2(dy,dx);
-  }
-
-  let speed=p.role==="hunter"?220:195;
-
-  if(p.role==="hunter"&&input.sprint)speed=310;
-  if(p.role!=="hunter"&&input.sprint)speed=270;
-  if(input.crouch&&p.role!=="hunter")speed=105;
-
-  p.x+=dx*speed*dt;
-  p.y+=dy*speed*dt;
-
-  p.x=Math.max(125,Math.min(WORLD.w-125,p.x));
-  p.y=Math.max(125,Math.min(WORLD.h-125,p.y));
-
-  const pressed=input.interact&&!p.prevInteract;
-
-  if(p.role==="escapee"){
-   updateEscapee(p,input,pressed,dt);
-  }else{
-   updateHunter(p);
-  }
-
-  p.prevInteract=!!input.interact;
- }
-
- const escapees=players.filter(p=>p.role==="escapee");
- const alive=escapees.filter(p=>p.alive&&!p.escaped);
-
- if(escapees.length>0&&alive.length===0){
-  finishGame("HUNTER WINS","All escapees have been caught.");
- }
-}
-
-function updateEscapee(p,input,pressed,dt){
- const task=game.tasks.find(t=>
-  !t.done&&distance(p,t)<75
- );
-
- if(task&&input.interact){
-  p.taskProgress+=dt;
-
-  if(p.taskProgress>=1.6){
-   task.done=true;
-   p.taskProgress=0;
-   game.message=task.name+" completed!";
-  }
-  return;
- }else{
-  p.taskProgress=0;
- }
-
- if(pressed&&p.actionCooldown<=0){
-  const spot=HIDING_SPOTS.find(s=>
-   distance(p,{x:s.x+s.w/2,y:s.y+s.h/2})<65
-  );
-
-  if(spot){
-   p.hidden=true;
-   p.actionCooldown=.3;
-   return;
-  }
-
-  const allDone=game.tasks.every(t=>t.done);
-
-  if(allDone&&distance(p,game.boat)<85){
-   p.escaped=true;
-   game.message=p.name+" escaped by boat!";
-
-   const remaining=players.some(q=>
-    q.role==="escapee"&&q.alive&&!q.escaped
-   );
-
-   if(!remaining){
-    finishGame("ESCAPEES WIN","Everyone made it off the island!");
-   }
-  }
- }
-}
-
-function updateHunter(p){
- for(const target of players){
-  if(target.role!=="escapee"||!target.alive||target.escaped||target.hidden)continue;
-
-  if(distance(p,target)<34){
-   target.alive=false;
-   target.hidden=false;
-   game.message=target.name+" has been caught!";
-  }
- }
-}
-
-/* =========================================
-   GAME END AND STATE UPDATES
-========================================= */
-
-function sendState(){
- if(!isHost||!game)return;
-
- const packet={
-  type:"state",
-  game:serialiseGame()
- };
-
- connections.forEach(c=>{
-  if(c.open){
-   try{c.send(packet)}catch(error){
-    console.error("State send failed:",error);
-   }
-  }
- });
-}
-
-function finishGame(title,text){
- if(!isHost)return;
-
- if(game)game.ended=true;
-
- connections.forEach(c=>{
-  if(c.open){
-   try{c.send({type:"end",title,text})}catch(error){}
-  }
- });
-
- finishLocalGame(title,text);
-}
-
-function finishLocalGame(title,text){
- running=false;
- $("endTitle").textContent=title;
- $("endText").textContent=text;
- showScreen("end");
-}
-
-function distance(a,b){
- return Math.hypot(a.x-b.x,a.y-b.y);
-}
-
-/* =========================================
-   HUD
-========================================= */
 
 function updateHUD(){
- if(!game||!players.length)return;
+  if(!gameState)return;
 
- const me=players.find(p=>p.id===myId);
- if(!me)return;
-
- const tasksDone=game.tasks.filter(t=>t.done).length;
- const allDone=tasksDone===game.tasks.length;
-
- if(me.role==="hunter"){
-  $("objective").textContent="You are the hunter. Find the escapees before they finish their repairs.";
- }else if(me.escaped){
-  $("objective").textContent="You escaped! Waiting for the game to finish.";
- }else if(!me.alive){
-  $("objective").textContent="You have been caught. Spectating...";
- }else if(allDone){
-  $("objective").textContent="All repairs complete! Reach the boat and press E.";
- }else{
-  $("objective").textContent="Repair the island equipment. Hold E near a repair station.";
- }
-
- $("taskList").innerHTML=
-  game.tasks.map(t=>
-   (t.done?"✓ ":"○ ")+escapeHtml(t.name)
-  ).join("<br>")+
-  "<br><br>Repairs: "+tasksDone+"/"+game.tasks.length;
-
- $("playerList").innerHTML=
-  "<strong>PLAYERS</strong>"+
-  players.map(p=>{
-   let status=p.escaped?"ESCAPED":!p.alive?"CAUGHT":p.hidden?"HIDDEN":p.role==="hunter"?"HUNTER":"ESCAPEE";
-   return "<div style='margin:5px 0'>"+
-    escapeHtml(p.name)+" <span style='color:#d5ad6c'>"+status+"</span></div>";
-  }).join("");
-}
-
-/* =========================================
-   CANVAS RENDERING
-========================================= */
-
-function resizeCanvas(){
- const dpr=Math.min(window.devicePixelRatio||1,2);
- canvas.width=Math.floor(canvas.clientWidth*dpr);
- canvas.height=Math.floor(canvas.clientHeight*dpr);
- ctx.setTransform(dpr,0,0,dpr,0,0);
-}
-
-window.addEventListener("resize",resizeCanvas);
-resizeCanvas();
-
-function render(){
- if(!game||!players.length)return;
-
- const me=players.find(p=>p.id===myId)||players[0];
- if(!me)return;
-
- const width=canvas.clientWidth;
- const height=canvas.clientHeight;
-
- ctx.clearRect(0,0,width,height);
-
- const cameraX=Math.max(0,Math.min(WORLD.w-width,me.x-width/2));
- const cameraY=Math.max(0,Math.min(WORLD.h-height,me.y-height/2));
-
- ctx.save();
- ctx.translate(-cameraX,-cameraY);
-
- drawWorld();
- drawTasks();
- drawHidingSpots();
- drawBoat();
- drawPlayers(me);
-
- ctx.restore();
-}
-
-function drawWorld(){
- ctx.fillStyle="#163e49";
- ctx.fillRect(0,0,WORLD.w,WORLD.h);
-
- ctx.fillStyle="#78875b";
- ctx.fillRect(90,90,WORLD.w-180,WORLD.h-180);
-
- ctx.strokeStyle="#d3c18b";
- ctx.lineWidth=26;
- ctx.strokeRect(103,103,WORLD.w-206,WORLD.h-206);
-
- ctx.strokeStyle="#667d4d";
- ctx.lineWidth=3;
-
- for(let x=130;x<WORLD.w-130;x+=90){
-  for(let y=130;y<WORLD.h-130;y+=90){
-   ctx.beginPath();
-   ctx.moveTo(x,y);
-   ctx.lineTo(x+12,y+8);
-   ctx.stroke();
+  const me = gameState.players.find(p=>p.id===socket.id);
+  if(me){
+    $("stamina").firstElementChild.style.width = me.stamina+"%";
+    if(!me.alive && !me.escaped){
+      $("objective").textContent = "You have been caught. Watch the remaining players.";
+    }
   }
- }
 
- BUILDINGS.forEach((b,i)=>{
-  ctx.fillStyle="#394b50";
-  ctx.fillRect(b.x,b.y,b.w,b.h);
-
-  ctx.fillStyle="#586b6b";
-  ctx.fillRect(b.x+9,b.y+9,b.w-18,b.h-18);
-
-  ctx.fillStyle="#26383c";
-  ctx.fillRect(b.x+b.w/2-30,b.y+b.h-16,60,16);
-
-  ctx.fillStyle="#d5c7a0";
-  ctx.font="bold 13px Arial";
-  ctx.textAlign="center";
-  ctx.fillText(b.name,b.x+b.w/2,b.y+28);
- });
-
- TREES.forEach(([x,y])=>{
-  ctx.fillStyle="#4c4935";
-  ctx.fillRect(x-5,y+7,10,20);
-
-  ctx.fillStyle="#284b35";
-  ctx.beginPath();
-  ctx.arc(x,y,25,0,Math.PI*2);
-  ctx.fill();
-
-  ctx.fillStyle="#3d6941";
-  ctx.beginPath();
-  ctx.arc(x-8,y-8,15,0,Math.PI*2);
-  ctx.fill();
- });
-
- // Dock
- ctx.fillStyle="#765b3d";
- ctx.fillRect(1390,1160,260,38);
- ctx.fillRect(1590,1190,38,120);
- ctx.fillRect(1430,1190,38,120);
-
- ctx.fillStyle="#d1b38a";
- ctx.font="bold 13px Arial";
- ctx.textAlign="center";
- ctx.fillText("DOCK",1515,1150);
+  if(myRole==="escapee"){
+    $("tasks").innerHTML = gameState.tasks.map(t=>
+      `<div class="task">${escapeHTML(t.name)} <span style="float:right">${Math.floor(t.progress)}%</span><div class="bar"><span style="width:${t.progress}%"></span></div></div>`
+    ).join("") +
+    `<div class="task">Fuel cans <span style="float:right">${gameState.fuel.filter(f=>f.collected).length}/2</span></div>`;
+  }else{
+    $("tasks").innerHTML = `<div class="task">Escapees remaining: ${gameState.players.filter(p=>p.role==="escapee"&&p.alive&&!p.escaped).length}</div><div class="task">Track and catch the escapees.</div>`;
+  }
 }
 
-function drawTasks(){
- game.tasks.forEach(t=>{
-  ctx.fillStyle=t.done?"#5fbd75":"#d6a64e";
-  ctx.fillRect(t.x-17,t.y-17,34,34);
+function keyName(e){
+  if(e.code==="Space")return "space";
+  return e.key.toLowerCase();
+}
 
-  ctx.strokeStyle="#17242b";
+window.addEventListener("keydown",e=>{
+  const k=keyName(e);
+  if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();
+  keys[k]=true;
+});
+window.addEventListener("keyup",e=>keys[keyName(e)]=false);
+window.addEventListener("blur",()=>keys={});
+
+function makeInput(){
+  const input = {
+    up:!!(keys.w||keys.arrowup),
+    down:!!(keys.s||keys.arrowdown),
+    left:!!(keys.a||keys.arrowleft),
+    right:!!(keys.d||keys.arrowright),
+    sprint:!!keys.shift,
+    crouch:!!keys.control,
+    interact:!!keys.e,
+    hide:!!keys.e,
+    pulse:!!keys.r,
+    disrupt:!!keys.f
+  };
+
+  if(myRole==="hunter"){
+    input.sprint = !!(keys.shift||keys.q);
+  }
+
+  return input;
+}
+
+setInterval(()=>{
+  if(!gameState || !$("game").classList.contains("active"))return;
+  const input = makeInput();
+  socket.emit("input",input);
+  lastInput = input;
+},50);
+
+function draw(){
+  if(!$("game").classList.contains("active"))return;
+  animation++;
+  renderWorld();
+  requestAnimationFrame(draw);
+}
+
+function renderWorld(){
+  const w=innerWidth,h=innerHeight;
+  ctx.clearRect(0,0,w,h);
+
+  const me = gameState?.players.find(p=>p.id===socket.id);
+  if(!me)return;
+
+  camera.x = Math.max(0,Math.min(mapInfo.width-w,me.x-w/2));
+  camera.y = Math.max(0,Math.min(mapInfo.height-h,me.y-h/2));
+
+  ctx.save();
+  ctx.translate(-camera.x,-camera.y);
+
+  drawIsland();
+  drawObstacles();
+  drawStations();
+  drawHidingSpots();
+  drawBoat();
+  drawPlayers(me);
+  drawVision(me);
+
+  ctx.restore();
+  drawMinimap(me);
+}
+
+function drawIsland(){
+  ctx.fillStyle="#203b2c";
+  ctx.fillRect(0,0,mapInfo.width,mapInfo.height);
+
+  // Grass texture
+  ctx.strokeStyle="#294632";
+  ctx.lineWidth=1;
+  for(let x=0;x<mapInfo.width;x+=55){
+    for(let y=0;y<mapInfo.height;y+=55){
+      const n=Math.sin(x*12.3+y*3.7);
+      ctx.globalAlpha=.18;
+      ctx.beginPath();
+      ctx.moveTo(x+n*5,y);
+      ctx.lineTo(x+8+n*5,y-9);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha=1;
+
+  // Shore and water
+  ctx.fillStyle="#234b5b";
+  ctx.fillRect(-100,-100,mapInfo.width+200,mapInfo.height+200);
+  ctx.fillStyle="#203b2c";
+  ctx.beginPath();
+  ctx.moveTo(150,130);
+  ctx.lineTo(850,60);
+  ctx.lineTo(1650,110);
+  ctx.lineTo(2540,200);
+  ctx.lineTo(2700,700);
+  ctx.lineTo(2630,1500);
+  ctx.lineTo(2500,2050);
+  ctx.lineTo(1800,2140);
+  ctx.lineTo(900,2100);
+  ctx.lineTo(200,1900);
+  ctx.lineTo(80,1200);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle="#73908b";
+  ctx.lineWidth=15;
+  ctx.stroke();
+
+  // Paths
+  ctx.strokeStyle="#786f51";
+  ctx.lineWidth=65;
+  ctx.lineCap="round";
+  ctx.beginPath();
+  ctx.moveTo(350,350);
+  ctx.lineTo(1150,850);
+  ctx.lineTo(1900,1000);
+  ctx.lineTo(2350,1800);
+  ctx.stroke();
+  ctx.strokeStyle="#9b906a";
   ctx.lineWidth=3;
-  ctx.strokeRect(t.x-17,t.y-17,34,34);
+  ctx.stroke();
+  ctx.lineCap="butt";
 
-  ctx.fillStyle="#101b20";
-  ctx.font="bold 17px Arial";
-  ctx.textAlign="center";
-  ctx.fillText(t.done?"✓":"!",t.x,t.y+6);
+  // Forest trees
+  for(let i=0;i<105;i++){
+    const x=180+((i*193)%2420);
+    const y=170+((i*317)%1830);
+    if(obstacles.some(o=>x>o.x-60&&x<o.x+o.w+60&&y>o.y-60&&y<o.y+o.h+60))continue;
+    drawTree(x,y,0.7+((i*17)%6)/10);
+  }
 
-  ctx.fillStyle="#f0e6cf";
-  ctx.font="12px Arial";
-  ctx.fillText(t.name,t.x,t.y-27);
- });
+  ctx.strokeStyle="#111a19";
+  ctx.lineWidth=8;
+  ctx.strokeRect(0,0,mapInfo.width,mapInfo.height);
+}
+
+function drawTree(x,y,s=1){
+  ctx.fillStyle="#101e18";
+  ctx.beginPath();
+  ctx.ellipse(x+7,y+13,24*s,15*s,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#4b3929";
+  ctx.fillRect(x-5*s,y-2*s,10*s,25*s);
+  ctx.fillStyle="#183322";
+  ctx.beginPath();
+  ctx.arc(x,y-12*s,25*s,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#284b31";
+  ctx.beginPath();
+  ctx.arc(x-9*s,y-20*s,14*s,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawObstacles(){
+  for(const o of obstacles){
+    ctx.fillStyle="#121719";
+    ctx.fillRect(o.x+8,o.y+12,o.w,o.h);
+    ctx.fillStyle="#55564d";
+    ctx.fillRect(o.x,o.y,o.w,o.h);
+    ctx.fillStyle="#77766a";
+    ctx.fillRect(o.x+8,o.y+8,o.w-16,12);
+    ctx.fillStyle="#292e2b";
+    ctx.fillRect(o.x+20,o.y+28,o.w-40,o.h-45);
+    ctx.strokeStyle="#a19b83";
+    ctx.lineWidth=3;
+    ctx.strokeRect(o.x,o.y,o.w,o.h);
+  }
+}
+
+function drawStations(){
+  if(!gameState)return;
+  for(const t of gameState.tasks){
+    ctx.fillStyle="#252b2b";
+    ctx.fillRect(t.x-28,t.y-23,56,46);
+    ctx.strokeStyle="#c2a96e";
+    ctx.lineWidth=3;
+    ctx.strokeRect(t.x-28,t.y-23,56,46);
+    ctx.fillStyle="#d6c58e";
+    ctx.font="bold 11px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(t.id.toUpperCase(),t.x,t.y+4);
+    ctx.fillStyle="#080b0b";
+    ctx.fillRect(t.x-30,t.y-35,60,6);
+    ctx.fillStyle="#a9c987";
+    ctx.fillRect(t.x-30,t.y-35,60*t.progress/100,6);
+  }
+
+  for(const f of gameState.fuel){
+    if(f.collected)continue;
+    ctx.fillStyle="#d6b642";
+    ctx.fillRect(f.x-9,f.y-15,18,30);
+    ctx.fillStyle="#46371a";
+    ctx.fillRect(f.x-5,f.y-20,10,6);
+    ctx.fillStyle="#fff1a7";
+    ctx.fillRect(f.x-5,f.y-8,10,5);
+  }
 }
 
 function drawHidingSpots(){
- HIDING_SPOTS.forEach(s=>{
-  ctx.fillStyle="#574a38";
-  ctx.fillRect(s.x,s.y,s.w,s.h);
-
-  ctx.strokeStyle="#c6ad78";
-  ctx.lineWidth=2;
-  ctx.strokeRect(s.x,s.y,s.w,s.h);
-
-  ctx.fillStyle="#e0d1a8";
-  ctx.font="10px Arial";
-  ctx.textAlign="center";
-  ctx.fillText("HIDE",s.x+s.w/2,s.y+s.h/2+4);
- });
+  for(const s of hidingSpots){
+    ctx.fillStyle=s.type==="Bush"?"#1d492b":"#544a3e";
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,22,0,Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle="#9c9a72";
+    ctx.lineWidth=2;
+    ctx.stroke();
+  }
 }
 
 function drawBoat(){
- const b=game.boat;
- const ready=game.tasks.every(t=>t.done);
-
- ctx.fillStyle="#332b26";
- ctx.beginPath();
- ctx.moveTo(b.x-58,b.y-25);
- ctx.lineTo(b.x+58,b.y-25);
- ctx.lineTo(b.x+42,b.y+30);
- ctx.lineTo(b.x-42,b.y+30);
- ctx.closePath();
- ctx.fill();
-
- ctx.fillStyle="#b78c51";
- ctx.fillRect(b.x-42,b.y-12,84,24);
-
- ctx.fillStyle=ready?"#7de39a":"#c6a05f";
- ctx.font="bold 13px Arial";
- ctx.textAlign="center";
- ctx.fillText(ready?"BOAT READY":"BOAT",b.x,b.y-42);
+  ctx.save();
+  ctx.translate(2350,1850);
+  ctx.rotate(-.12);
+  ctx.fillStyle="#111619";
+  ctx.beginPath();
+  ctx.moveTo(-95,-35);
+  ctx.lineTo(85,-35);
+  ctx.lineTo(115,0);
+  ctx.lineTo(80,45);
+  ctx.lineTo(-80,45);
+  ctx.lineTo(-110,0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle="#72543b";
+  ctx.fillRect(-65,-24,130,48);
+  ctx.fillStyle="#c5c0a2";
+  ctx.fillRect(-12,-17,24,34);
+  ctx.restore();
+  ctx.fillStyle="#d6d4bd";
+  ctx.font="bold 13px Arial";
+  ctx.textAlign="center";
+  ctx.fillText("ESCAPE BOAT",2350,1780);
 }
 
 function drawPlayers(me){
- players.forEach(p=>{
-  if(!p.alive||p.escaped||p.hidden)return;
+  if(!gameState)return;
 
-  ctx.save();
-  ctx.translate(p.x,p.y);
+  for(const p of gameState.players){
+    if(!p.alive||p.escaped)continue;
+    if(p.hidden && p.id!==socket.id)continue;
 
-  ctx.fillStyle=p.role==="hunter"?"#c44f4f":"#4d9cbd";
-  ctx.beginPath();
-  ctx.arc(0,0,15,0,Math.PI*2);
-  ctx.fill();
+    const hunter=p.role==="hunter";
+    ctx.save();
+    ctx.translate(p.x,p.y);
 
-  ctx.strokeStyle="#e5e8e8";
-  ctx.lineWidth=2;
-  ctx.stroke();
+    ctx.fillStyle="#0009";
+    ctx.beginPath();
+    ctx.ellipse(0,15,17,8,0,0,Math.PI*2);
+    ctx.fill();
 
-  ctx.fillStyle="#f4f0df";
-  ctx.beginPath();
-  ctx.arc(0,-3,6,0,Math.PI*2);
-  ctx.fill();
+    ctx.fillStyle=hunter?"#761f29":"#b4b5a3";
+    ctx.beginPath();
+    ctx.arc(0,0,hunter?15:12,0,Math.PI*2);
+    ctx.fill();
 
-  ctx.restore();
+    ctx.fillStyle=hunter?"#e6a0a0":"#293a36";
+    ctx.beginPath();
+    ctx.arc(0,-5,7,0,Math.PI*2);
+    ctx.fill();
 
-  ctx.fillStyle="#ffffff";
-  ctx.font="12px Arial";
-  ctx.textAlign="center";
-  ctx.fillText(p.name,p.x,p.y-23);
- });
+    ctx.strokeStyle="#111";
+    ctx.lineWidth=2;
+    ctx.stroke();
 
- // Highlight local player
- if(me.alive&&!me.hidden&&!me.escaped){
-  ctx.strokeStyle="#f3d37a";
-  ctx.lineWidth=2;
-  ctx.beginPath();
-  ctx.arc(me.x,me.y,21,0,Math.PI*2);
-  ctx.stroke();
- }
+    if(p.id===socket.id){
+      ctx.strokeStyle="#f4e5a4";
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(0,0,21,0,Math.PI*2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    ctx.font="bold 12px Arial";
+    ctx.textAlign="center";
+    ctx.fillStyle="#fff";
+    ctx.shadowColor="#000";
+    ctx.shadowBlur=4;
+    ctx.fillText(p.name,p.x,p.y-25);
+    ctx.shadowBlur=0;
+  }
 }
 
-/* =========================================
-   UTILITIES
-========================================= */
+function drawVision(me){
+  if(!me)return;
+  const radius=me.role==="hunter"?210:340;
 
-function escapeHtml(value){
- return String(value).replace(/[&<>"']/g,char=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#39;"
- })[char]);
+  ctx.fillStyle="#0009";
+  ctx.fillRect(0,0,mapInfo.width,mapInfo.height);
+
+  ctx.globalCompositeOperation="destination-out";
+  ctx.beginPath();
+  ctx.arc(me.x,me.y,radius,0,Math.PI*2);
+  ctx.fill();
+  ctx.globalCompositeOperation="source-over";
+
+  const grad=ctx.createRadialGradient(me.x,me.y,radius*.55,me.x,me.y,radius);
+  grad.addColorStop(0,"#0000");
+  grad.addColorStop(1,"#0005");
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.arc(me.x,me.y,radius,0,Math.PI*2);
+  ctx.fill();
+
+  if(me.pulse>0){
+    ctx.strokeStyle="#b6d8ff";
+    ctx.lineWidth=4;
+    ctx.globalAlpha=me.pulse/90;
+    ctx.beginPath();
+    ctx.arc(me.x,me.y,Math.max(0,(90-me.pulse)*7),0,Math.PI*2);
+    ctx.stroke();
+    ctx.globalAlpha=1;
+  }
 }
 
-/* =========================================
-   INITIAL SETUP
-========================================= */
+function drawMinimap(me){
+  const mw=150,mh=118,x=innerWidth-mw-15,y=innerHeight-mh-15;
+  ctx.fillStyle="#080c0de8";
+  ctx.fillRect(x,y,mw,mh);
+  ctx.strokeStyle="#879187";
+  ctx.strokeRect(x,y,mw,mh);
 
-$("playerName").value=
- "Player"+Math.floor(100+Math.random()*900);
+  const sx=mw/mapInfo.width,sy=mh/mapInfo.height;
+  ctx.fillStyle="#31533a";
+  ctx.fillRect(x+2,y+2,mw-4,mh-4);
 
-showScreen("menu");
-setStatus("Ready. Create a room or join a friend.");
+  for(const o of obstacles){
+    ctx.fillStyle="#5b5b51";
+    ctx.fillRect(x+o.x*sx,y+o.y*sy,o.w*sx,o.h*sy);
+  }
 
-console.log("ISLAND ESCAPE loaded.");
-console.log("PeerJS available:",!!window.Peer);
+  if(gameState){
+    for(const p of gameState.players){
+      if(!p.alive||p.escaped)continue;
+      ctx.fillStyle=p.role==="hunter"?"#ed4e59":"#e7e5ce";
+      ctx.beginPath();
+      ctx.arc(x+p.x*sx,y+p.y*sy,3,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  ctx.fillStyle="#fff";
+  ctx.font="9px Arial";
+  ctx.fillText("ISLAND",x+6,y+12);
+}
 </script>
 </body>
 </html>
