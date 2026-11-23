@@ -3,45 +3,44 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPSTEIN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPSTEIN: ISLAND ESCAPE</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#080b0d;color:#e8e9e7;font-family:Arial,sans-serif;overflow:hidden}
+body{margin:0;background:#080b0d;color:#eee;font-family:Arial,sans-serif;overflow:hidden}
 button,input{font:inherit}
-button{background:#a72d2d;border:1px solid #d05a50;color:white;padding:12px 20px;cursor:pointer;font-weight:bold;letter-spacing:1px}
+button{background:#a72d2d;border:1px solid #d05a50;color:white;padding:13px 18px;cursor:pointer;font-weight:bold;letter-spacing:1px}
 button:hover{background:#d13c35}
-button:disabled{opacity:.35;cursor:not-allowed}
-input{background:#101719;color:white;border:1px solid #596368;padding:12px;width:100%;margin:8px 0}
-.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#20282a 0%,#080b0d 75%);z-index:10}
-.panel{width:min(540px,92vw);background:rgba(9,13,15,.96);border:1px solid #555;padding:30px;box-shadow:0 20px 80px #000}
-h1{font-size:62px;letter-spacing:12px;color:#bd3934;text-align:center;margin:0 0 5px;text-shadow:0 0 25px #8e1717}
-.subtitle{text-align:center;color:#899395;letter-spacing:4px;margin-bottom:30px;font-size:12px}
-.menuButtons{display:grid;gap:10px}
+input{background:#101719;color:white;border:1px solid #596368;padding:13px;width:100%;margin:7px 0}
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#20282a,#080b0d 75%);z-index:10}
+.panel{width:min(540px,92vw);background:#090d0ff2;border:1px solid #555;padding:30px;box-shadow:0 20px 80px #000}
+h1{font-size:48px;letter-spacing:8px;color:#bd3934;text-align:center;margin:0 0 5px;text-shadow:0 0 25px #8e1717}
+.subtitle{text-align:center;color:#899395;letter-spacing:3px;margin-bottom:25px;font-size:11px}
+.menuButtons{display:grid;gap:9px}
 .small{font-size:12px;color:#899395;line-height:1.6}
+.label{font-size:11px;color:#b8c0c0;letter-spacing:2px;margin-top:12px;display:block}
 .hidden{display:none!important}
 #game{position:fixed;inset:0}
 canvas{width:100%;height:100%;display:block;background:#111}
 #hud{position:absolute;inset:0;pointer-events:none}
 #topbar{position:absolute;top:15px;left:15px;right:15px;display:flex;justify-content:space-between;gap:10px}
-.hudbox{background:rgba(0,0,0,.72);border:1px solid #596064;padding:10px 14px;font-size:12px;letter-spacing:1px}
+.hudbox{background:#000b;border:1px solid #596064;padding:10px 14px;font-size:12px;letter-spacing:1px}
 #objective{position:absolute;top:75px;left:15px;width:260px;background:#080c0ddd;border:1px solid #555;padding:14px}
 #objective h3{margin:0 0 9px;color:#d6a26a;font-size:13px;letter-spacing:2px}
 .task{font-size:11px;margin:8px 0;color:#b9c0bf}
 .bar{height:5px;background:#333;margin-top:4px}
-.bar>div{height:100%;background:#b53b35;width:0%}
+.bar>div{height:100%;background:#b53b35}
 #prompt{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:#080c0ddd;padding:12px 20px;border:1px solid #777;text-align:center;min-width:240px;font-size:13px}
 #bottom{position:absolute;bottom:15px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:end}
 #abilities{display:flex;gap:8px}
 .ability{background:#090d0ee8;border:1px solid #62696b;padding:10px;font-size:11px;min-width:95px}
 .ability b{display:block;color:#e0a56e;margin-bottom:4px}
-#message{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-size:25px;letter-spacing:4px;text-shadow:0 2px 8px black;text-align:center;pointer-events:none}
+#message{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-size:23px;letter-spacing:3px;text-shadow:0 2px 8px black;text-align:center}
+.playerRow{padding:8px;border-bottom:1px solid #283033;font-size:13px}
 #lobbyPlayers{padding:10px;background:#111819;margin:15px 0;min-height:70px}
-.playerRow{padding:7px;border-bottom:1px solid #283033;font-size:13px}
-#copyStatus{font-size:11px;color:#7ea68b}
 #endScreen{position:fixed;inset:0;background:#050809ee;z-index:20;display:flex;align-items:center;justify-content:center;text-align:center}
-#endScreen h2{font-size:48px;letter-spacing:7px}
+#endScreen h2{font-size:42px;letter-spacing:6px}
 </style>
 </head>
 <body>
@@ -50,30 +49,36 @@ canvas{width:100%;height:100%;display:block;background:#111}
  <div class="panel">
   <h1>EPSTEIN</h1>
   <div class="subtitle">THE ISLAND // MULTIPLAYER HORROR</div>
+
+  <label class="label" for="playerName">YOUR PLAYER NAME</label>
+  <input id="playerName" maxlength="18" placeholder="Enter your name">
+
   <div class="menuButtons">
-   <button onclick="createRoom()">CREATE ROOM</button>
-   <input id="joinCode" placeholder="ENTER ROOM CODE">
-   <button onclick="joinRoom()">JOIN ROOM</button>
+   <button onclick="createRoom()">HOST GAME</button>
+   <label class="label" for="joinCode">ROOM CODE</label>
+   <input id="joinCode" placeholder="Enter room code">
+   <button onclick="joinRoom()">JOIN GAME</button>
   </div>
+
   <p class="small">One Hunter. Up to four escapees. Repair the boat, avoid the Hunter and escape the island.</p>
-  <p class="small">Requires an internet connection and the PeerJS signalling service for online multiplayer.</p>
   <div id="menuStatus" class="small"></div>
  </div>
 </div>
 
 <div id="lobby" class="screen hidden">
  <div class="panel">
-  <h1 style="font-size:38px">LOBBY</h1>
+  <h1 style="font-size:36px">LOBBY</h1>
   <div class="subtitle">WAITING FOR PLAYERS</div>
-  <p class="small">ROOM CODE</p>
+  <span class="label">ROOM CODE</span>
   <div style="display:flex;gap:8px">
    <input id="roomCode" readonly>
    <button onclick="copyCode()">COPY</button>
   </div>
-  <div id="copyStatus"></div>
+  <div id="copyStatus" class="small"></div>
+  <span class="label">PLAYERS</span>
   <div id="lobbyPlayers"></div>
-  <button id="startButton" onclick="startGame()">START GAME</button>
-  <p class="small">The host controls the match. At least two players are recommended.</p>
+  <button id="startButton" onclick="startGame()">START MATCH</button>
+  <p class="small">At least two players are required. The host controls the match.</p>
  </div>
 </div>
 
@@ -81,8 +86,8 @@ canvas{width:100%;height:100%;display:block;background:#111}
  <canvas id="canvas"></canvas>
  <div id="hud">
   <div id="topbar">
-   <div class="hudbox" id="roleHud">ROLE: ESCAPEE</div>
-   <div class="hudbox" id="aliveHud">PLAYERS: 0</div>
+   <div class="hudbox" id="roleHud">ROLE</div>
+   <div class="hudbox" id="aliveHud">ALIVE</div>
    <div class="hudbox" id="clockHud">00:00</div>
   </div>
   <div id="objective">
@@ -92,7 +97,7 @@ canvas{width:100%;height:100%;display:block;background:#111}
   <div id="prompt">Explore the area</div>
   <div id="message"></div>
   <div id="bottom">
-   <div class="hudbox" id="controlsHud">WASD MOVE · SHIFT SPRINT · E INTERACT · CTRL CROUCH</div>
+   <div class="hudbox" id="controlsHud">WASD MOVE</div>
    <div id="abilities"></div>
   </div>
  </div>
@@ -109,11 +114,6 @@ canvas{width:100%;height:100%;display:block;background:#111}
 <script>
 "use strict";
 
-/* =========================================================
-   EPSTEIN - SINGLE FILE MULTIPLAYER GAME
-   Host-authoritative simulation using PeerJS.
-   ========================================================= */
-
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
@@ -123,6 +123,7 @@ let hostConnection=null;
 let isHost=false;
 let myId=null;
 let myPlayerId=null;
+let myName="Player";
 let players=[];
 let game=null;
 let running=false;
@@ -130,79 +131,85 @@ let lastFrame=0;
 let sendTimer=0;
 let localInput={};
 let camera={x:0,y:0};
-let world={w:1800,h:1300};
+const world={w:2800,h:2200};
 let particles=[];
-let lastMessage="";
 
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 
-const hidingSpots=[
- {x:300,y:300,type:"WARDROBE",r:25},
- {x:600,y:250,type:"LOCKER",r:25},
- {x:950,y:320,type:"BED",r:28},
- {x:1330,y:400,type:"WARDROBE",r:25},
- {x:400,y:700,type:"LOCKER",r:25},
- {x:850,y:850,type:"BUSHES",r:35},
- {x:1300,y:900,type:"BUSHES",r:35},
- {x:1550,y:650,type:"LOCKER",r:25}
-];
+function escapeHtml(s){
+ return String(s).replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
 
-const fuelSpawns=[
- {x:400,y:470,taken:false},
- {x:1150,y:700,taken:false}
-];
-
-const taskDefinitions=[
- {id:"basement",name:"Open basement exit",x:180,y:1050,duration:9,stage:0},
- {id:"engine",name:"Repair boat engine",x:1480,y:1040,duration:18,stage:1},
- {id:"hull",name:"Repair hull",x:1580,y:1050,duration:15,stage:1},
- {id:"electrics",name:"Repair electrical system",x:1510,y:1140,duration:14,stage:1},
- {id:"refuel",name:"Refuel the boat",x:1390,y:1040,duration:10,stage:2},
- {id:"start",name:"Start the boat",x:1460,y:990,duration:6,stage:3}
-];
-
-const obstacles=[
- {x:100,y:100,w:350,h:230},
- {x:500,y:100,w:400,h:180},
- {x:1050,y:100,w:400,h:240},
- {x:150,y:480,w:260,h:160},
- {x:650,y:470,w:300,h:220},
- {x:1100,y:490,w:300,h:190},
- {x:150,y:850,w:200,h:130},
- {x:600,y:950,w:280,h:150}
-];
-
-function newGame(){
- return {
-  time:0,
-  started:false,
-  ended:false,
-  basementOpen:false,
-  fuel:0,
-  fuelFilled:false,
-  boatStarted:false,
-  senseUntil:0,
-  tasks:taskDefinitions.map(t=>({...t,progress:0,done:false,blockedUntil:0})),
-  fuels:fuelSpawns.map(f=>({...f})),
-  players:[]
- };
+function getName(){
+ const n=$("playerName").value.trim().slice(0,18);
+ if(!n){
+  $("menuStatus").textContent="Please enter your player name first.";
+  $("playerName").focus();
+  return null;
+ }
+ return n;
 }
 
 function createPlayer(id,name){
  return {
-  id,name,role:"ESCAPEE",
-  x:180,y:1080,
-  alive:true,
-  hidden:false,
-  crouching:false,
-  input:{},
-  boostUntil:0,
-  qCooldown:0,
-  rCooldown:0,
-  fCooldown:0,
-  lastQ:false,lastR:false,lastF:false
+  id,name:name||"Player",role:"ESCAPEE",
+  x:180,y:1080,alive:true,hidden:false,crouching:false,
+  input:{},boostUntil:0,qCooldown:0,rCooldown:0,fCooldown:0,
+  lastQ:false,lastR:false,lastF:false,lastE:false
+ };
+}
+
+const hidingSpots=[
+ {x:300,y:300,type:"WARDROBE"},
+ {x:600,y:250,type:"LOCKER"},
+ {x:950,y:320,type:"BED"},
+ {x:1330,y:400,type:"WARDROBE"},
+ {x:400,y:700,type:"LOCKER"},
+ {x:850,y:850,type:"BUSHES"},
+ {x:1300,y:900,type:"BUSHES"},
+ {x:1550,y:650,type:"LOCKER"},
+ {x:2050,y:450,type:"WARDROBE"},
+ {x:2300,y:850,type:"BUSHES"},
+ {x:1900,y:1500,type:"LOCKER"},
+ {x:700,y:1700,type:"BUSHES"},
+ {x:2500,y:1750,type:"WARDROBE"}
+].map(h=>({...h,r:h.type==="BUSHES"?35:25}));
+
+const taskDefinitions=[
+ {id:"basement",name:"Open basement exit",x:180,y:1050,duration:9,stage:0},
+ {id:"engine",name:"Repair boat engine",x:2450,y:1800,duration:18,stage:1},
+ {id:"hull",name:"Repair hull",x:2550,y:1810,duration:15,stage:1},
+ {id:"electrics",name:"Repair electrical system",x:2480,y:1900,duration:14,stage:1},
+ {id:"refuel",name:"Refuel the boat",x:2360,y:1800,duration:10,stage:2},
+ {id:"start",name:"Start the boat",x:2430,y:1750,duration:6,stage:3}
+];
+
+const fuelSpawns=[
+ {x:400,y:470,taken:false},
+ {x:2150,y:1300,taken:false}
+];
+
+const obstacles=[
+ {x:100,y:100,w:350,h:230},{x:500,y:100,w:400,h:180},
+ {x:1050,y:100,w:400,h:240},{x:150,y:480,w:260,h:160},
+ {x:650,y:470,w:300,h:220},{x:1100,y:490,w:300,h:190},
+ {x:150,y:850,w:200,h:130},{x:600,y:950,w:280,h:150},
+ {x:1750,y:200,w:350,h:250},{x:2200,y:350,w:400,h:220},
+ {x:1800,y:750,w:300,h:250},{x:2200,y:1050,w:350,h:220},
+ {x:300,y:1450,w:350,h:220},{x:850,y:1550,w:400,h:200},
+ {x:1500,y:1400,w:300,h:250},{x:1900,y:1750,w:250,h:150}
+];
+
+function newGame(){
+ return {
+  time:0,started:false,ended:false,basementOpen:false,
+  fuel:0,fuelFilled:false,boatStarted:false,senseUntil:0,
+  tasks:taskDefinitions.map(t=>({...t,progress:0,done:false,blockedUntil:0})),
+  fuels:fuelSpawns.map(f=>({...f}))
  };
 }
 
@@ -211,68 +218,87 @@ function show(id){$(id).classList.remove("hidden")}
 function hide(id){$(id).classList.add("hidden")}
 
 function createRoom(){
+ const name=getName();
+ if(!name)return;
  if(!window.Peer){setStatus("PeerJS failed to load. Check your internet connection.");return}
+
+ myName=name;
  setStatus("Creating room...");
  peer=new Peer();
+
  peer.on("open",id=>{
   myId=id;
   myPlayerId=id;
   isHost=true;
-  players=[createPlayer(id,"Host")];
+  players=[createPlayer(id,myName)];
   game=newGame();
   show("lobby");hide("menu");
   $("roomCode").value=id;
   refreshLobby();
  });
+
  peer.on("connection",conn=>{
   conn.on("open",()=>{
    connections.push(conn);
    conn.on("data",data=>handleHostData(conn,data));
-   conn.send({type:"welcome",id:conn.peer});
-   refreshLobby();
-  });
-  conn.on("close",()=>{
-   connections=connections.filter(c=>c!==conn);
-   players=players.filter(p=>p.id!==conn.peer);
+   conn.on("close",()=>{
+    connections=connections.filter(c=>c!==conn);
+    players=players.filter(p=>p.id!==conn.peer);
+    refreshLobby();
+    sendLobby();
+   });
+   conn.send({type:"welcome"});
    refreshLobby();
   });
  });
+
  peer.on("error",e=>setStatus("Connection error: "+e.type));
 }
 
 function joinRoom(){
+ const name=getName();
+ if(!name)return;
  const code=$("joinCode").value.trim();
  if(!code){setStatus("Enter a room code.");return}
  if(!window.Peer){setStatus("PeerJS failed to load.");return}
+
+ myName=name;
  setStatus("Joining room...");
  peer=new Peer();
+
  peer.on("open",id=>{
   myId=id;
   myPlayerId=id;
   hostConnection=peer.connect(code,{reliable:true});
   hostConnection.on("open",()=>{
-   hostConnection.send({type:"join",name:"Player"});
+   hostConnection.send({type:"join",name:myName});
    setStatus("Connected!");
   });
   hostConnection.on("data",handleGuestData);
   hostConnection.on("error",()=>setStatus("Connection failed."));
+  hostConnection.on("close",()=>setStatus("Host disconnected."));
  });
+
  peer.on("error",e=>setStatus("Could not join: "+e.type));
 }
 
 function handleHostData(conn,data){
  if(!isHost||!data)return;
+
  if(data.type==="join"){
   if(players.length>=5){
    conn.send({type:"full"});
    return;
   }
+
   if(!players.some(p=>p.id===conn.peer)){
-   players.push(createPlayer(conn.peer,"Player "+players.length));
+   const safeName=String(data.name||"Player").slice(0,18);
+   players.push(createPlayer(conn.peer,safeName));
   }
   refreshLobby();
   sendLobby();
  }
+
  if(data.type==="input"){
   const p=players.find(p=>p.id===conn.peer);
   if(p&&p.alive)p.input=data.input||{};
@@ -281,41 +307,50 @@ function handleHostData(conn,data){
 
 function handleGuestData(data){
  if(!data)return;
+
  if(data.type==="welcome"){
-  myPlayerId=peer.id;
+  // The connection is ready.
  }
+
  if(data.type==="lobby"){
-  $("lobbyPlayers").innerHTML=data.names.map(n=>'<div class="playerRow">'+escapeHtml(n)+'</div>').join("");
+  $("lobbyPlayers").innerHTML=data.players.map(p=>
+   '<div class="playerRow">'+escapeHtml(p.name)+'</div>'
+  ).join("");
   show("lobby");hide("menu");
  }
+
  if(data.type==="full")setStatus("That room is full.");
+
  if(data.type==="start"){
   game=data.game;
   players=game.players;
   beginGame();
  }
+
  if(data.type==="state"){
   game=data.game;
   players=game.players;
   if(!running&&game.started)beginGame();
   updateHUD();
  }
+
  if(data.type==="end")finishGame(data.title,data.text);
 }
 
-function escapeHtml(s){
- return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-
 function refreshLobby(){
- const names=players.map(p=>p.name+(p.id===myPlayerId?" (YOU)":""));
- $("lobbyPlayers").innerHTML=names.map(n=>'<div class="playerRow">'+escapeHtml(n)+'</div>').join("");
+ $("lobbyPlayers").innerHTML=players.map(p=>
+  '<div class="playerRow">'+escapeHtml(p.name)+
+  (p.id===myPlayerId?" <b>(YOU)</b>":"")+
+  '</div>'
+ ).join("");
+
  $("startButton").disabled=!isHost||players.length<2;
- $("startButton").textContent=players.length<2?"WAITING FOR PLAYERS":"START GAME";
+ $("startButton").textContent=players.length<2?
+  "WAITING FOR PLAYERS":"START MATCH";
 }
 
 function sendLobby(){
- const data={type:"lobby",names:players.map(p=>p.name)};
+ const data={type:"lobby",players:players.map(p=>({id:p.id,name:p.name}))};
  connections.forEach(c=>{if(c.open)c.send(data)});
 }
 
@@ -327,24 +362,36 @@ function copyCode(){
 
 function startGame(){
  if(!isHost||players.length<2)return;
+
  game=newGame();
  game.started=true;
- game.players=players;
+
  const hunterIndex=Math.floor(Math.random()*players.length);
+
  players.forEach((p,i)=>{
   p.role=i===hunterIndex?"HUNTER":"ESCAPEE";
-  p.alive=true;p.hidden=false;p.crouching=false;
-  p.x=p.role==="HUNTER"?850:180+Math.random()*80;
-  p.y=p.role==="HUNTER"?500:1050+Math.random()*50;
+  p.alive=true;
+  p.hidden=false;
+  p.crouching=false;
+  p.x=p.role==="HUNTER"?1400:180+Math.random()*80;
+  p.y=p.role==="HUNTER"?700:1050+Math.random()*50;
   p.input={};
  });
+
  game.players=players;
- connections.forEach(c=>{if(c.open)c.send({type:"start",game:serialiseGame()})});
+
+ connections.forEach(c=>{
+  if(c.open)c.send({type:"start",game:serialiseGame()});
+ });
+
  beginGame();
 }
 
 function serialiseGame(){
- return {...game,players:players.map(p=>({...p,input:{}}))};
+ return {
+  ...game,
+  players:players.map(p=>({...p,input:{}}))
+ };
 }
 
 function beginGame(){
@@ -375,9 +422,7 @@ function localPlayer(){
  return players.find(p=>p.id===myPlayerId);
 }
 
-function keyName(e){
- return e.key.toLowerCase();
-}
+function keyName(e){return e.key.toLowerCase()}
 
 window.addEventListener("keydown",e=>{
  const k=keyName(e);
@@ -385,13 +430,8 @@ window.addEventListener("keydown",e=>{
  localInput[k]=true;
 });
 
-window.addEventListener("keyup",e=>{
- localInput[keyName(e)]=false;
-});
-
-window.addEventListener("blur",()=>{
- localInput={};
-});
+window.addEventListener("keyup",e=>{localInput[keyName(e)]=false});
+window.addEventListener("blur",()=>{localInput={}});
 
 function resize(){
  const dpr=Math.min(devicePixelRatio||1,2);
@@ -416,7 +456,7 @@ function nearestTask(p){
   if(t.done)continue;
   if(t.id==="basement"&&game.basementOpen)continue;
   if(t.stage===1&&!game.basementOpen)continue;
-  if(t.stage===2&&!allRepairsDone())continue;
+  if(t.stage===2&&(!allRepairsDone()||game.fuel<2))continue;
   if(t.stage===3&&!game.fuelFilled)continue;
   const d=distance(p,t);
   if(d<bd){best=t;bd=d}
@@ -425,7 +465,9 @@ function nearestTask(p){
 }
 
 function allRepairsDone(){
- return ["engine","hull","electrics"].every(id=>game.tasks.find(t=>t.id===id)?.done);
+ return ["engine","hull","electrics"].every(id=>
+  game.tasks.find(t=>t.id===id)?.done
+ );
 }
 
 function nearestFuel(p){
@@ -436,6 +478,13 @@ function nearestFuel(p){
   if(d<bd){best=f;bd=d}
  }
  return best;
+}
+
+let announcementTimer=null;
+function announce(text){
+ $("message").textContent=text;
+ clearTimeout(announcementTimer);
+ announcementTimer=setTimeout(()=>{$("message").textContent=""},2200);
 }
 
 function updateHost(dt){
@@ -456,11 +505,13 @@ function updateHost(dt){
     p.qCooldown=game.time+13;
     announce("THE HUNTER IS SPRINTING");
    }
+
    if(inp.r&&!p.lastR&&game.time>=p.rCooldown){
     game.senseUntil=game.time+4;
     p.rCooldown=game.time+20;
     announce("TRACKING PULSE ACTIVATED");
    }
+
    if(inp.f&&!p.lastF&&game.time>=p.fCooldown){
     let target=null,bd=155;
     for(const t of game.tasks){
@@ -474,19 +525,24 @@ function updateHost(dt){
      announce("A REPAIR STATION HAS BEEN DISRUPTED");
     }
    }
-   p.lastQ=!!inp.q;p.lastR=!!inp.r;p.lastF=!!inp.f;
+
+   p.lastQ=!!inp.q;
+   p.lastR=!!inp.r;
+   p.lastF=!!inp.f;
   }
 
-  let speed=p.role==="HUNTER"?3.15:2.45;
-  if(p.role==="HUNTER"&&game.time<p.boostUntil)speed=5.0;
-  if(p.crouching&&p.role==="ESCAPEE")speed=1.25;
-  if(inp.shift&&p.role==="ESCAPEE"&&!p.crouching)speed=3.1;
+  // Faster movement for everyone.
+  let speed=p.role==="HUNTER"?4.0:3.2;
+  if(p.role==="HUNTER"&&game.time<p.boostUntil)speed=6.2;
+  if(p.crouching&&p.role==="ESCAPEE")speed=1.7;
+  if(inp.shift&&p.role==="ESCAPEE"&&!p.crouching)speed=4.3;
 
   let dx=0,dy=0;
   if(inp.w||inp.arrowup)dy--;
   if(inp.s||inp.arrowdown)dy++;
   if(inp.a||inp.arrowleft)dx--;
   if(inp.d||inp.arrowright)dx++;
+
   const len=Math.hypot(dx,dy)||1;
   dx=dx/len*speed*dt*60;
   dy=dy/len*speed*dt*60;
@@ -501,14 +557,14 @@ function updateHost(dt){
     const h=nearestHide(p);
     if(h){
      p.hidden=!p.hidden;
-     announce(p.hidden?"SOMEONE HAS HIDDEN":"SOMEONE LEFT A HIDING PLACE");
+     announce(p.hidden?"PLAYER HIDING":"PLAYER LEFT HIDING PLACE");
     }
    }
    p.lastE=!!inp.e;
   }
  }
 
- // Hunter catches escapees unless they are hidden.
+ // Hunter catches visible escapees nearby.
  for(const p of players){
   if(p.role==="ESCAPEE"&&p.alive&&!p.hidden&&distance(p,hunter)<30){
    p.alive=false;
@@ -517,7 +573,7 @@ function updateHost(dt){
   }
  }
 
- // Escapee objective progress.
+ // Repair and pickup interactions.
  for(const p of players){
   if(!p.alive||p.role!=="ESCAPEE"||p.hidden)continue;
   if(!p.input?.e)continue;
@@ -533,35 +589,26 @@ function updateHost(dt){
   const task=nearestTask(p);
   if(task&&game.time>=task.blockedUntil){
    task.progress=Math.min(task.duration,task.progress+dt);
+
    if(task.progress>=task.duration&&!task.done){
     task.done=true;
     if(task.id==="basement")game.basementOpen=true;
     if(task.id==="refuel")game.fuelFilled=true;
+
     if(task.id==="start"){
      game.boatStarted=true;
-     endGame("ESCAPEES WIN","The boat has started. The escapees have left the island.");
+     endGame("ESCAPEES WIN","The boat has started. The escapees escaped the island.");
     }
+
     announce(task.name.toUpperCase()+" COMPLETE");
    }
   }
  }
 
- // Refuel only when both fuel cans have been collected.
- const refuel=game.tasks.find(t=>t.id==="refuel");
- if(refuel&&game.fuel<2)refuel.blockedUntil=game.time+0.2;
- else if(refuel&&refuel.blockedUntil>game.time)refuel.blockedUntil=0;
-
  const aliveEscapees=players.filter(p=>p.role==="ESCAPEE"&&p.alive);
  if(aliveEscapees.length===0){
   endGame("HUNTER WINS","No escapees remain.");
  }
-}
-
-function announce(text){
- lastMessage=text;
- $("message").textContent=text;
- clearTimeout(announce.timer);
- announce.timer=setTimeout(()=>{$("message").textContent=""},2300);
 }
 
 function endGame(title,text){
@@ -581,6 +628,7 @@ function finishGame(title,text){
 
 function loop(now){
  if(!running)return;
+
  const dt=Math.min((now-lastFrame)/1000,.05);
  lastFrame=now;
 
@@ -591,74 +639,67 @@ function loop(now){
  }else{
   sendInput();
  }
+
  render();
  updateHUD();
  requestAnimationFrame(loop);
 }
 
-/* =========================
-   DRAWING AND ENVIRONMENT
-   ========================= */
+/* WORLD DRAWING */
 
 function drawWorld(){
- ctx.fillStyle="#17251e";
+ ctx.fillStyle="#14232c";
  ctx.fillRect(0,0,world.w,world.h);
 
- // Grass texture
- for(let i=0;i<1800;i++){
-  const x=(i*197)%world.w,y=(i*317)%world.h;
-  ctx.fillStyle=i%3===0?"#243528":"#1c2c21";
+ // Island landmass
+ ctx.fillStyle="#1a3328";
+ ctx.beginPath();
+ ctx.roundRect(55,55,2690,2090,150);
+ ctx.fill();
+
+ ctx.strokeStyle="#52604a";
+ ctx.lineWidth=14;
+ ctx.stroke();
+
+ // Grass details
+ for(let i=0;i<2500;i++){
+  const x=(i*197)%world.w;
+  const y=(i*317)%world.h;
+  ctx.fillStyle=i%3===0?"#263a2b":"#203328";
   ctx.fillRect(x,y,2,2);
  }
 
- // Island shoreline and water
- ctx.fillStyle="#101e26";
- ctx.fillRect(0,0,world.w,world.h);
- ctx.fillStyle="#1a332e";
- ctx.beginPath();
- ctx.roundRect(55,55,1690,1190,90);
- ctx.fill();
-
- // Shoreline details
- ctx.strokeStyle="#52604a";
- ctx.lineWidth=12;
- ctx.stroke();
- ctx.strokeStyle="#263f39";
- ctx.lineWidth=3;
- ctx.stroke();
-
- // Water outside island
- ctx.save();
- ctx.beginPath();
- ctx.roundRect(0,0,world.w,world.h,0);
- ctx.rect(55,55,1690,1190);
- ctx.fillStyle="#14232c";
- ctx.fill("evenodd");
- ctx.restore();
-
- // Water wave marks
- for(let i=0;i<130;i++){
+ // Water ripples
+ for(let i=0;i<250;i++){
   const x=(i*139+game.time*9)%world.w;
   const y=(i*251)%world.h;
   ctx.strokeStyle="rgba(116,154,160,.16)";
   ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+12,y+2);ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(x+12,y+2);
+  ctx.stroke();
  }
 
  // Paths
  ctx.strokeStyle="#4a4638";
- ctx.lineWidth=70;
+ ctx.lineWidth=75;
  ctx.lineCap="round";
  ctx.beginPath();
- ctx.moveTo(180,1080);ctx.lineTo(300,750);ctx.lineTo(750,650);ctx.lineTo(1120,650);ctx.lineTo(1450,1030);
+ ctx.moveTo(180,1080);
+ ctx.lineTo(300,750);
+ ctx.lineTo(750,650);
+ ctx.lineTo(1300,650);
+ ctx.lineTo(1800,1000);
+ ctx.lineTo(2400,1800);
  ctx.stroke();
+
  ctx.strokeStyle="#625a45";
  ctx.lineWidth=2;
  ctx.stroke();
 
  // Buildings
- for(let i=0;i<obstacles.length;i++){
-  const o=obstacles[i];
+ for(const o of obstacles){
   ctx.fillStyle="#252b2b";
   ctx.fillRect(o.x,o.y,o.w,o.h);
   ctx.fillStyle="#343c3a";
@@ -669,7 +710,7 @@ function drawWorld(){
   ctx.strokeStyle="#161b1b";
   ctx.lineWidth=2;
   ctx.strokeRect(o.x+15,o.y+15,o.w-30,o.h-30);
-  // Windows
+
   for(let x=o.x+35;x<o.x+o.w-20;x+=75){
    ctx.fillStyle="#111c20";
    ctx.fillRect(x,o.y+12,24,8);
@@ -679,49 +720,50 @@ function drawWorld(){
  // Basement
  ctx.fillStyle="#171a1a";
  ctx.fillRect(85,970,190,150);
- ctx.strokeStyle="#74766b";ctx.lineWidth=5;
+ ctx.strokeStyle="#74766b";
+ ctx.lineWidth=5;
  ctx.strokeRect(85,970,190,150);
  ctx.fillStyle="#a08a66";
  ctx.font="bold 13px Arial";
  ctx.fillText("BASEMENT EXIT",105,960);
 
- // Dock and boat
+ // Dock
  ctx.fillStyle="#72573b";
- ctx.fillRect(1320,970,330,35);
- ctx.fillRect(1350,1005,22,110);
- ctx.fillRect(1600,1005,22,110);
+ ctx.fillRect(2250,1750,400,35);
+ ctx.fillRect(2280,1785,22,120);
+ ctx.fillRect(2600,1785,22,120);
  ctx.fillStyle="#9a7950";
- ctx.fillRect(1410,1005,160,18);
+ ctx.fillRect(2360,1785,180,18);
 
- // Boat hull
+ // Boat
  ctx.fillStyle="#4b4a42";
  ctx.beginPath();
- ctx.moveTo(1430,1035);ctx.lineTo(1585,1035);ctx.lineTo(1550,1100);ctx.lineTo(1465,1100);ctx.closePath();
+ ctx.moveTo(2370,1815);
+ ctx.lineTo(2580,1815);
+ ctx.lineTo(2545,1890);
+ ctx.lineTo(2410,1890);
+ ctx.closePath();
  ctx.fill();
- ctx.strokeStyle="#aaa08b";ctx.lineWidth=3;ctx.stroke();
+ ctx.strokeStyle="#aaa08b";
+ ctx.lineWidth=3;
+ ctx.stroke();
+
  ctx.fillStyle="#202a2b";
- ctx.fillRect(1480,1040,55,24);
+ ctx.fillRect(2440,1820,65,25);
  ctx.fillStyle="#d4c6a4";
  ctx.font="bold 12px Arial";
- ctx.fillText("BOAT",1490,1120);
+ ctx.fillText("BOAT",2460,1910);
 
- // Trees
- for(let i=0;i<55;i++){
-  const x=100+(i*239)%1600;
-  const y=100+(i*173)%1100;
+ // Forest
+ for(let i=0;i<130;i++){
+  const x=100+(i*239)%2600;
+  const y=100+(i*173)%2000;
   if(obstacles.some(o=>x>o.x-35&&x<o.x+o.w+35&&y>o.y-35&&y<o.y+o.h+35))continue;
   drawTree(x,y);
  }
 
- // Hiding spots
  for(const h of hidingSpots)drawHidingSpot(h);
-
- // Fuel
- for(const f of game.fuels){
-  if(!f.taken)drawFuel(f.x,f.y);
- }
-
- // Tasks
+ for(const f of game.fuels)if(!f.taken)drawFuel(f.x,f.y);
  for(const t of game.tasks){
   if(t.done)continue;
   if(t.id==="basement"&&game.basementOpen)continue;
@@ -731,27 +773,37 @@ function drawWorld(){
 
 function drawTree(x,y){
  ctx.fillStyle="#111c16";
- ctx.beginPath();ctx.ellipse(x,y+12,22,11,0,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.ellipse(x,y+12,22,11,0,0,Math.PI*2);
+ ctx.fill();
  ctx.fillStyle="#263e2b";
- ctx.beginPath();ctx.arc(x,y,19,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.arc(x,y,19,0,Math.PI*2);
+ ctx.fill();
  ctx.fillStyle="#38533a";
- ctx.beginPath();ctx.arc(x-6,y-7,10,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.arc(x-6,y-7,10,0,Math.PI*2);
+ ctx.fill();
 }
 
 function drawHidingSpot(h){
  ctx.save();
  ctx.translate(h.x,h.y);
+
  if(h.type==="BUSHES"){
   ctx.fillStyle="#172d20";
   for(let i=0;i<5;i++){
-   ctx.beginPath();ctx.arc((i-2)*12,Math.sin(i)*7,17,0,Math.PI*2);ctx.fill();
+   ctx.beginPath();
+   ctx.arc((i-2)*12,Math.sin(i)*7,17,0,Math.PI*2);
+   ctx.fill();
   }
  }else{
   ctx.fillStyle="#473b30";
   ctx.fillRect(-16,-23,32,46);
   ctx.fillStyle="#75604a";
   ctx.fillRect(-12,-19,24,38);
-  ctx.strokeStyle="#b39a72";ctx.lineWidth=2;
+  ctx.strokeStyle="#b39a72";
+  ctx.lineWidth=2;
   ctx.strokeRect(-16,-23,32,46);
   ctx.fillStyle="#211f1a";
   ctx.fillRect(7,-2,3,5);
@@ -772,57 +824,96 @@ function drawTask(t){
  ctx.save();
  ctx.translate(t.x,t.y);
  ctx.fillStyle=t.blockedUntil>game.time?"#7a2727":"#c18a4e";
- ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle="#ead1a2";ctx.lineWidth=2;ctx.stroke();
+ ctx.beginPath();
+ ctx.arc(0,0,15,0,Math.PI*2);
+ ctx.fill();
+ ctx.strokeStyle="#ead1a2";
+ ctx.lineWidth=2;
+ ctx.stroke();
  ctx.fillStyle="#191919";
- ctx.font="bold 13px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+ ctx.font="bold 13px Arial";
+ ctx.textAlign="center";
+ ctx.textBaseline="middle";
  ctx.fillText("E",0,0);
+
  if(t.progress>0){
-  ctx.strokeStyle="#e5b66e";ctx.lineWidth=4;
-  ctx.beginPath();ctx.arc(0,0,22,-Math.PI/2,-Math.PI/2+Math.PI*2*t.progress/t.duration);ctx.stroke();
+  ctx.strokeStyle="#e5b66e";
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.arc(0,0,22,-Math.PI/2,-Math.PI/2+Math.PI*2*t.progress/t.duration);
+  ctx.stroke();
  }
  ctx.restore();
 }
 
 function drawPlayer(p,me){
- if(!p.alive)return;
- if(p.hidden)return;
+ if(!p.alive||p.hidden)return;
+
  ctx.save();
  ctx.translate(p.x,p.y);
+
  ctx.fillStyle="rgba(0,0,0,.4)";
- ctx.beginPath();ctx.ellipse(0,9,13,6,0,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.ellipse(0,9,13,6,0,0,Math.PI*2);
+ ctx.fill();
+
  ctx.fillStyle=p.role==="HUNTER"?"#a83230":"#b4b9b0";
- ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.arc(0,0,10,0,Math.PI*2);
+ ctx.fill();
+
  ctx.fillStyle="#151515";
- ctx.beginPath();ctx.arc(0,-3,5,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.arc(0,-3,5,0,Math.PI*2);
+ ctx.fill();
+
  if(me){
-  ctx.strokeStyle="#e6d3a2";ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle="#e6d3a2";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(0,0,16,0,Math.PI*2);
+  ctx.stroke();
  }
+
+ // Player name above their character
+ ctx.font="bold 12px Arial";
+ ctx.textAlign="center";
+ ctx.fillStyle="#fff";
+ ctx.shadowColor="#000";
+ ctx.shadowBlur=5;
+ ctx.fillText(p.name,0,-23);
+ ctx.shadowBlur=0;
+
  ctx.restore();
 }
 
 function drawVision(p){
  const radius=p.role==="HUNTER"?210:340;
- const vision=ctx.createRadialGradient(p.x,p.y,Math.max(20,radius*.35),p.x,p.y,radius);
+ const vision=ctx.createRadialGradient(
+  p.x,p.y,Math.max(20,radius*.35),p.x,p.y,radius
+ );
  vision.addColorStop(0,"rgba(0,0,0,0)");
  vision.addColorStop(1,"rgba(0,0,0,.96)");
+
  ctx.save();
  ctx.fillStyle="rgba(0,0,0,.88)";
  ctx.fillRect(camera.x,camera.y,innerWidth,innerHeight);
  ctx.globalCompositeOperation="destination-out";
  ctx.fillStyle=vision;
- ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.arc(p.x,p.y,radius,0,Math.PI*2);
+ ctx.fill();
  ctx.restore();
 
- // Hunter tracking pulse outline.
  if(p.role==="HUNTER"&&game.time<game.senseUntil){
   ctx.save();
   for(const other of players){
    if(other.role==="ESCAPEE"&&other.alive){
     ctx.strokeStyle="#e24b46";
     ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(other.x,other.y,19,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(other.x,other.y,19,0,Math.PI*2);
+    ctx.stroke();
    }
   }
   ctx.restore();
@@ -845,32 +936,18 @@ function render(){
 
  for(const p of players){
   if(p.role==="ESCAPEE"&&p.hidden&&me.role==="HUNTER"&&game.time<game.senseUntil){
-   ctx.strokeStyle="#d34b42";ctx.lineWidth=3;
-   ctx.beginPath();ctx.arc(p.x,p.y,18,0,Math.PI*2);ctx.stroke();
+   ctx.strokeStyle="#d34b42";
+   ctx.lineWidth=3;
+   ctx.beginPath();
+   ctx.arc(p.x,p.y,18,0,Math.PI*2);
+   ctx.stroke();
   }
   drawPlayer(p,p.id===me.id);
  }
 
- // Interaction range
- if(me.role==="ESCAPEE"&&!me.hidden){
-  const h=nearestHide(me);
-  const t=nearestTask(me);
-  const f=nearestFuel(me);
-  if(h||t||f){
-   const target=h||f||t;
-   ctx.strokeStyle="rgba(235,211,157,.35)";
-   ctx.setLineDash([4,5]);
-   ctx.beginPath();ctx.arc(target.x,target.y,27,0,Math.PI*2);ctx.stroke();
-   ctx.setLineDash([]);
-  }
- }
-
- // Vision is applied last so it darkens the environment.
  drawVision(me);
-
  ctx.restore();
 
- // Tiny atmospheric grain.
  if(Math.random()<.3){
   particles.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,a:.15});
  }
@@ -884,25 +961,22 @@ function render(){
 function updateHUD(){
  const me=localPlayer();
  if(!me||!game)return;
- $("roleHud").textContent="ROLE: "+(me.role==="HUNTER"?"HUNTER":"ESCAPEE");
+
+ $("roleHud").textContent="ROLE: "+me.role+" | "+me.name;
  $("aliveHud").textContent="ALIVE: "+players.filter(p=>p.alive).length;
+
  const mins=Math.floor(game.time/60).toString().padStart(2,"0");
  const secs=Math.floor(game.time%60).toString().padStart(2,"0");
  $("clockHud").textContent=mins+":"+secs;
 
  const taskList=$("taskList");
  taskList.innerHTML="";
- for(const t of game.tasks){
-  if(t.id==="basement"&&game.basementOpen)continue;
-  const row=document.createElement("div");
-  row.className="task";
-  const pct=Math.floor(t.progress/t.duration*100);
-  row.innerHTML=escapeHtml(t.name)+" <span style='float:right'>"+(t.done?"DONE":pct+"%")+"</span><div class='bar'><div style='width:"+pct+"%'></div></div>";
-  taskList.appendChild(row);
- }
+
  if(me.role==="HUNTER"){
   $("objective").querySelector("h3").textContent="HUNTER OBJECTIVES";
-  taskList.innerHTML="<div class='task'>Prevent the escapees from repairing the boat.</div><div class='task'>Use your abilities to track and disrupt.</div>";
+  taskList.innerHTML=
+   "<div class='task'>Stop the escapees repairing the boat.</div>"+
+   "<div class='task'>Use abilities to track and disrupt.</div>";
   $("controlsHud").textContent="WASD MOVE · Q SPRINT · R TRACK · F DISRUPT";
   $("abilities").innerHTML=
    abilityHTML("Q","SPRINT",me.qCooldown-game.time)+
@@ -910,17 +984,33 @@ function updateHUD(){
    abilityHTML("F","DISRUPT",me.fCooldown-game.time);
  }else{
   $("objective").querySelector("h3").textContent="ESCAPE OBJECTIVES";
+
+  for(const t of game.tasks){
+   if(t.id==="basement"&&game.basementOpen)continue;
+   const row=document.createElement("div");
+   row.className="task";
+   const pct=Math.floor(t.progress/t.duration*100);
+   row.innerHTML=escapeHtml(t.name)+
+    " <span style='float:right'>"+(t.done?"DONE":pct+"%")+
+    "</span><div class='bar'><div style='width:"+pct+"%'></div></div>";
+   taskList.appendChild(row);
+  }
+
   $("controlsHud").textContent="WASD MOVE · SHIFT SPRINT · E HIDE / INTERACT · CTRL CROUCH";
   $("abilities").innerHTML="";
  }
 
  const prompt=$("prompt");
+
  if(me.role==="HUNTER"){
   prompt.textContent=game.time<game.senseUntil?"TRACKING PULSE ACTIVE":"Find the escapees.";
  }else if(me.hidden){
   prompt.textContent="HIDDEN · PRESS E TO LEAVE";
  }else{
-  const h=nearestHide(me),f=nearestFuel(me),t=nearestTask(me);
+  const h=nearestHide(me);
+  const f=nearestFuel(me);
+  const t=nearestTask(me);
+
   if(h)prompt.textContent="E · HIDE IN "+h.type;
   else if(f)prompt.textContent="E · PICK UP FUEL";
   else if(t)prompt.textContent="HOLD E · "+t.name;
@@ -929,9 +1019,9 @@ function updateHUD(){
 }
 
 function abilityHTML(key,name,cooldown){
- return '<div class="ability"><b>'+key+' · '+name+'</b>'+(cooldown>0?Math.ceil(cooldown)+"s":"READY")+'</div>';
+ return '<div class="ability"><b>'+key+' · '+name+'</b>'+
+  (cooldown>0?Math.ceil(cooldown)+"s":"READY")+'</div>';
 }
-
 </script>
 </body>
 </html>
