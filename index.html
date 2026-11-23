@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPSTEIN</title>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@400;600;800&display=swap');
+
+*{box-sizing:border-box}
+body{margin:0;background:#080909;color:#eee;font-family:Inter,sans-serif;overflow:hidden}
+button,input{font:inherit}
+button{cursor:pointer;border:1px solid #684040;background:#241313;color:white;padding:13px 20px;border-radius:5px;font-weight:800;transition:.2s}
+button:hover{background:#632525;transform:translateY(-2px)}
+input{background:#111;color:white;border:1px solid #444;padding:13px;border-radius:5px;width:100%;outline:none}
+input:focus{border-color:#b44}
+#menu{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#251313 0%,#080909 70%)}
+.panel{width:min(430px,92vw);padding:35px;background:#101111;border:1px solid #533333;box-shadow:0 0 70px #000;text-align:center}
+.logo{font:800 48px Orbitron,sans-serif;letter-spacing:7px;color:#c33;text-shadow:0 0 20px #900}
+.subtitle{color:#888;letter-spacing:4px;font-size:11px;margin:8px 0 30px}
+.field{margin:12px 0}
+.actions{display:grid;gap:10px;margin-top:18px}
+.note{font-size:11px;color:#777;line-height:1.6;margin-top:22px}
+#game{display:none;position:fixed;inset:0;background:#080909}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
+#hud{position:absolute;inset:0;pointer-events:none}
+.hudtop{display:flex;justify-content:space-between;padding:20px;gap:10px}
+.hudbox{background:#090b0be8;border:1px solid #444;padding:12px 16px;border-radius:5px;font-size:12px}
+#objective{position:absolute;top:85px;left:50%;transform:translateX(-50%);text-align:center;background:#090b0be8;padding:12px 24px;border:1px solid #533;border-radius:5px;min-width:260px}
+#players{position:absolute;bottom:20px;left:20px;background:#090b0be8;border:1px solid #444;padding:12px;min-width:190px;font-size:12px}
+#controls{position:absolute;bottom:20px;right:20px;text-align:right;color:#aaa;font-size:11px;line-height:1.8}
+#message{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font:800 32px Orbitron;color:#fff;text-align:center;text-shadow:0 0 20px #c00;display:none}
+#lobby{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#080909}
+#lobby .panel{width:min(500px,94vw)}
+#roomCode{font:800 35px Orbitron;color:#d55;letter-spacing:8px;margin:15px}
+#playerList{margin:20px 0;text-align:left;line-height:2;color:#bbb}
+#toast{position:absolute;top:15px;left:50%;transform:translateX(-50%);background:#181818;padding:12px 22px;border:1px solid #744;display:none;z-index:5}
+#serverSettings{font-size:11px;color:#777;margin-top:12px}
+#serverSettings summary{cursor:pointer}
+#serverSettings input{margin-top:8px}
+</style>
+</head>
+<body>
+
+<div id="menu">
+ <div class="panel">
+  <div class="logo">EPSTEIN</div>
+  <div class="subtitle">THE ISLAND // MULTIPLAYER HORROR</div>
+  <div class="field"><input id="username" maxlength="16" placeholder="ENTER YOUR NAME"></div>
+  <div class="actions">
+   <button onclick="createRoom()">CREATE ROOM</button>
+   <input id="joinCode" maxlength="5" placeholder="ROOM CODE">
+   <button onclick="joinRoom()">JOIN ROOM</button>
+  </div>
+  <div id="serverSettings">
+   <details>
+    <summary>SERVER CONNECTION</summary>
+    <input id="serverUrl" placeholder="https://your-server.onrender.com">
+   </details>
+  </div>
+  <div class="note">1 HUNTER. 4 INVESTIGATORS.<br>COLLECT EVIDENCE. FIND THE EXIT. SURVIVE.</div>
+ </div>
+</div>
+
+<div id="lobby">
+ <div class="panel">
+  <div class="logo" style="font-size:34px">LOBBY</div>
+  <div class="subtitle">WAITING FOR PLAYERS</div>
+  ROOM CODE
+  <div id="roomCode">-----</div>
+  <button onclick="copyCode()">COPY INVITE CODE</button>
+  <div id="playerList">Waiting for players...</div>
+  <button id="startButton" onclick="startGame()" style="width:100%">START MATCH</button>
+  <button onclick="leaveRoom()" style="width:100%;margin-top:10px">LEAVE ROOM</button>
+  <div class="note">The host starts the match. Five players recommended.</div>
+ </div>
+</div>
+
+<div id="game">
+ <canvas id="canvas"></canvas>
+ <div id="hud">
+  <div class="hudtop">
+   <div class="hudbox" id="role">ROLE: WAITING</div>
+   <div class="hudbox" id="stamina">STAMINA: 100%</div>
+   <div class="hudbox" id="evidence">EVIDENCE: 0/5</div>
+  </div>
+  <div id="objective">WAITING FOR MATCH...</div>
+  <div id="players"></div>
+  <div id="controls">WASD - MOVE<br>SHIFT - SPRINT<br>E - COLLECT / ESCAPE</div>
+  <div id="message"></div>
+ </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let socket=null, room=null, isHost=false, game=null;
+let keys={},lastInput=0,toastTimer;
+const canvas=$('canvas'),ctx=canvas.getContext('2d');
+
+function notify(t){
+ $('toast').textContent=t;
+ $('toast').style.display='block';
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>$('toast').style.display='none',2500);
+}
+function connect(){
+ const url=$('serverUrl').value.trim()||'https://epstein-game-server.onrender.com';
+ if(socket?.connected)return true;
+ socket=io(url,{transports:['websocket','polling']});
+ socket.on('connect_error',()=>notify('Could not connect to server. Check the server URL.'));
+ socket.on('roomCreated',d=>enterRoom(d));
+ socket.on('roomJoined',d=>enterRoom(d));
+ socket.on('errorMessage',m=>notify(m));
+ socket.on('lobbyUpdate',d=>{
+  room=d;
+  $('roomCode').textContent=d.code;
+  $('playerList').innerHTML=d.players.map(p=>
+   `<div>● ${escapeHTML(p.name)} ${p.id===d.host?' <b style="color:#c55">HOST</b>':''}</div>`
+  ).join('');
+  $('startButton').disabled=!isHost||d.players.length<2;
+  $('startButton').textContent=d.players.length<2?'NEED MORE PLAYERS':'START MATCH';
+ });
+ socket.on('gameState',d=>{
+  game=d;
+  if($('game').style.display!=='block'){
+   $('menu').style.display='none';
+   $('lobby').style.display='none';
+   $('game').style.display='block';
+   resize();
+  }
+  updateHUD();
+ });
+ socket.on('matchEnded',d=>{
+  $('message').style.display='block';
+  $('message').innerHTML=escapeHTML(d.message);
+ });
+ socket.on('returnedToLobby',()=>{
+  game=null;
+  $('game').style.display='none';
+  $('lobby').style.display='flex';
+ });
+ socket.on('disconnect',()=>notify('Disconnected from server'));
+ return true;
+}
+function escapeHTML(s){
+ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function createRoom(){
+ if(!connect())return;
+ socket.emit('createRoom',{name:$('username').value.trim()||'Player'});
+}
+function joinRoom(){
+ if(!connect())return;
+ socket.emit('joinRoom',{name:$('username').value.trim()||'Player',code:$('joinCode').value.trim().toUpperCase()});
+}
+function enterRoom(d){
+ room=d;isHost=d.host===socket.id;
+ $('menu').style.display='none';
+ $('lobby').style.display='flex';
+ $('roomCode').textContent=d.code;
+ socket.emit('getLobby');
+}
+function startGame(){socket.emit('startGame')}
+function leaveRoom(){
+ socket.emit('leaveRoom');
+ $('lobby').style.display='none';
+ $('menu').style.display='flex';
+ room=null;
+}
+function copyCode(){
+ navigator.clipboard?.writeText(room?.code||'');
+ notify('Room code copied');
+}
+function resize(){
+ const dpr=Math.min(devicePixelRatio||1,2);
+ canvas.width=innerWidth*dpr;
+ canvas.height=innerHeight*dpr;
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener('resize',resize);
+window.addEventListener('keydown',e=>{
+ keys[e.key.toLowerCase()]=true;
+ if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+});
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+function updateHUD(){
+ if(!game)return;
+ const me=game.players.find(p=>p.id===socket.id);
+ if(!me)return;
+ $('role').textContent='ROLE: '+(me.role==='hunter'?'EPSTEIN':'INVESTIGATOR');
+ $('stamina').textContent='STAMINA: '+Math.round(me.stamina)+'%';
+ $('evidence').textContent='EVIDENCE: '+game.evidence+'/'+game.required;
+ $('objective').textContent=me.role==='hunter'
+  ?'STOP THE INVESTIGATORS FROM ESCAPING'
+  :game.evidence>=game.required?'THE EXIT IS OPEN. FIND IT!':'FIND EVIDENCE ('+game.evidence+'/'+game.required+')';
+ $('players').innerHTML=game.players.map(p=>
+  `<div style="color:${p.id===socket.id?'#fff':'#aaa'}">${escapeHTML(p.name)} ${p.role==='hunter'?'[HUNTER]':p.caught?'[CAUGHT]':'[INVESTIGATOR]'}</div>`
+ ).join('');
+}
+function draw(){
+ requestAnimationFrame(draw);
+ if(!game||$('game').style.display!=='block')return;
+ const w=innerWidth,h=innerHeight;
+ ctx.clearRect(0,0,w,h);
+ const me=game.players.find(p=>p.id===socket.id);
+ if(!me)return;
+ const scale=Math.min(w/900,h/650);
+ const camX=me.x-w/2,camY=me.y-h/2;
+ ctx.save();
+ ctx.translate(-camX,-camY);
+ ctx.fillStyle='#17201a';
+ ctx.fillRect(0,0,1200,900);
+ // Ground texture
+ for(let x=0;x<1200;x+=55)for(let y=0;y<900;y+=55){
+  ctx.fillStyle=((x+y)%110===0)?'#1a281e':'#19241c';
+  ctx.fillRect(x,y,48,48);
+ }
+ // Paths
+ ctx.fillStyle='#34332b';
+ ctx.fillRect(0,390,1200,100);
+ ctx.fillRect(550,0,100,900);
+ // Buildings / obstacles
+ for(const o of game.obstacles||[]){
+  ctx.fillStyle='#343434';ctx.fillRect(o.x,o.y,o.w,o.h);
+  ctx.strokeStyle='#626262';ctx.strokeRect(o.x,o.y,o.w,o.h);
+ }
+ // Evidence
+ for(const e of game.items||[]){
+  if(e.taken)continue;
+  ctx.fillStyle='#e2c76b';
+  ctx.fillRect(e.x-9,e.y-9,18,18);
+  ctx.fillStyle='#fff3b0';ctx.fillRect(e.x-3,e.y-3,6,6);
+ }
+ // Exit
+ ctx.fillStyle=game.evidence>=game.required?'#168c54':'#542222';
+ ctx.fillRect(1100,390,65,100);
+ ctx.fillStyle='white';ctx.font='14px Inter';ctx.fillText('EXIT',1110,380);
+ // Players
+ for(const p of game.players){
+  if(p.caught)continue;
+  ctx.beginPath();ctx.arc(p.x,p.y,14,0,Math.PI*2);
+  ctx.fillStyle=p.role==='hunter'?'#a22':'#b8c9c0';
+  ctx.fill();
+  ctx.strokeStyle=p.id===socket.id?'white':'#333';
+  ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle='white';ctx.font='12px Inter';ctx.textAlign='center';
+  ctx.fillText(p.role==='hunter'?'EPSTEIN':p.name,p.x,p.y-23);
+ }
+ // Local vision shade
+ const gradient=ctx.createRadialGradient(me.x,me.y,45,me.x,me.y,330);
+ gradient.addColorStop(0,'rgba(0,0,0,0)');
+ gradient.addColorStop(1,'rgba(0,0,0,.75)');
+ ctx.fillStyle=gradient;ctx.fillRect(camX,camY,w,h);
+ ctx.restore();
+}
+requestAnimationFrame(draw);
+
+setInterval(()=>{
+ if(!socket?.connected||!game)return;
+ const me=game.players.find(p=>p.id===socket.id);
+ if(!me||me.caught)return;
+ const now=Date.now();
+ const input={
+  up:!!keys.w||!!keys.arrowup,
+  down:!!keys.s||!!keys.arrowdown,
+  left:!!keys.a||!!keys.arrowleft,
+  right:!!keys.d||!!keys.arrowright,
+  sprint:!!keys.shift,
+  interact:!!keys.e
+ };
+ if(input.interact&&!window.interactSent){
+  socket.emit('interact');
+  window.interactSent=true;
+ }
+ if(!input.interact)window.interactSent=false;
+ socket.emit('input',input);
+},50);
+</script>
+</body>
+</html>
