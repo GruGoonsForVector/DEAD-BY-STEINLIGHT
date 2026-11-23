@@ -296,41 +296,43 @@ function gameTick(room) {
       p.wasDisrupt = !!input.disrupt;
 
       // Locker search. Only lockers can be searched.
-      if (input.search && !p.wasSearch) {
-        const locker = hidingSpots.find(s =>
-          s.type === "Locker" && distance(p, s) < 85
-        );
+if (input.search && !p.wasSearch) {
+  const locker = hidingSpots.find(s =>
+    s.type === "Locker" && distance(p, s) < 85
+  );
 
-        if (locker) {
-          const target = players.find(t =>
-            t.role === "escapee" &&
-            t.alive &&
-            t.hidden &&
-            t.hiddenIn === locker.id
-          );
+  if (!locker) {
+    io.to(p.id).emit(
+      "notice",
+      "Get closer to a locker to search it."
+    );
+  } else {
+    const target = players.find(t =>
+      t.role === "escapee" &&
+      t.alive &&
+      t.hidden &&
+      t.hiddenIn === locker.id
+    );
 
-          if (target) {
-            target.alive = false;
-            target.hidden = false;
-            target.hiddenIn = null;
+    if (target) {
+      target.alive = false;
+      target.hidden = false;
+      target.hiddenIn = null;
 
-            io.to(room.code).emit(
-              "notice",
-              `${target.name} was found in a locker!`
-            );
-          } else {
-            io.to(p.id).emit(
-              "notice",
-              "The locker is empty."
-            );
-          }
-        } else {
-          io.to(p.id).emit(
-            "notice",
-            "Move closer to a locker to search it."
-          );
-        }
-      }
+      io.to(room.code).emit(
+        "notice",
+        `EPSTEIN FOUND ${target.name} IN A LOCKER!`
+      );
+    } else {
+      io.to(p.id).emit(
+        "notice",
+        "EMPTY LOCKER"
+      );
+    }
+  }
+}
+
+p.wasSearch = !!input.search;
 
       p.wasSearch = !!input.search;
 
