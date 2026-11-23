@@ -181,8 +181,8 @@ function allObjectivesComplete(game) {
 function getStateFor(viewer, game) {
   return {
     players: game.players.map(p => {
-      const hiddenFromViewer =
-        p.hidden && p.id !== viewer.id;
+      const teammate = p.role === viewer.role;
+      const hiddenFromViewer = p.hidden && !teammate;
 
       return {
         id: p.id,
