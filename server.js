@@ -8,7 +8,9 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" }
+  cors: { origin: "*" },
+  pingInterval: 25000,
+  pingTimeout: 20000
 });
 
 const PORT = process.env.PORT || 3000;
@@ -31,32 +33,37 @@ const obstacles = [
   { x: 2250, y: 1450, w: 180, h: 180, name: "Dock Store" }
 ];
 
-const hidingSpots = [
-  { id: "locker1", x: 550, y: 500, type: "Locker" },
-  { id: "locker2", x: 1200, y: 650, type: "Locker" },
-  { id: "locker3", x: 1750, y: 500, type: "Locker" },
-  { id: "wardrobe1", x: 750, y: 750, type: "Wardrobe" },
-  { id: "wardrobe2", x: 1850, y: 750, type: "Wardrobe" },
-  { id: "bed1", x: 600, y: 1450, type: "Bed" },
-  { id: "bush1", x: 600, y: 1050, type: "Bush" },
-  { id: "bush2", x: 1750, y: 1450, type: "Bush" },
-  { id: "bush3", x: 2300, y: 1100, type: "Bush" }
-];
-
+// Objectives are deliberately placed outside solid building collision.
 const stationTemplate = [
-  { id: "basement", name: "Basement Exit", x: 900, y: 600 },
-  { id: "engine", name: "Boat Engine", x: 2250, y: 1850 },
-  { id: "hull", name: "Boat Hull", x: 2420, y: 1850 },
-  { id: "electrics", name: "Boat Electrics", x: 2350, y: 1700 }
+  { id: "basement", name: "Basement Exit", x: 1200, y: 760, kind: "exit" },
+  { id: "engine", name: "Boat Engine", x: 2200, y: 1810, kind: "engine" },
+  { id: "hull", name: "Boat Hull", x: 2420, y: 1810, kind: "hull" },
+  { id: "electrics", name: "Boat Electrics", x: 2110, y: 1690, kind: "electric" }
 ];
 
 const fuelTemplate = [
-  { id: "fuel1", x: 450, y: 950, collected: false },
-  { id: "fuel2", x: 1900, y: 950, collected: false }
+  { id: "fuel1", x: 1120, y: 1350, collected: false },
+  { id: "fuel2", x: 2150, y: 1050, collected: false }
+];
+
+const hidingSpots = [
+  { id: "locker1", x: 1120, y: 620, type: "Locker" },
+  { id: "locker2", x: 1380, y: 1050, type: "Locker" },
+  { id: "locker3", x: 2100, y: 850, type: "Locker" },
+  { id: "wardrobe1", x: 1120, y: 430, type: "Wardrobe" },
+  { id: "wardrobe2", x: 1380, y: 1450, type: "Wardrobe" },
+  { id: "bed1", x: 1120, y: 1550, type: "Bed" },
+  { id: "bush1", x: 650, y: 1000, type: "Bush" },
+  { id: "bush2", x: 1850, y: 1100, type: "Bush" },
+  { id: "bush3", x: 2500, y: 1150, type: "Bush" }
 ];
 
 function makeCode() {
-  return crypto.randomBytes(3).toString("hex").toUpperCase();
+  let code;
+  do {
+    code = crypto.randomBytes(3).toString("hex").toUpperCase();
+  } while (rooms.has(code));
+  return code;
 }
 
 function cleanName(value) {
@@ -70,13 +77,23 @@ function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-function createPlayer(id, name) {
+function createPlayer(id, name, index = 0) {
+  const spawns = [
+    { x: 250, y: 250 },
+    { x: 350, y: 850 },
+    { x: 1250, y: 1250 },
+    { x: 2150, y: 1250 },
+    { x: 2500, y: 850 }
+  ];
+
+  const spawn = spawns[index % spawns.length];
+
   return {
     id,
     name,
     role: "escapee",
-    x: 250 + Math.random() * 150,
-    y: 250 + Math.random() * 150,
+    x: spawn.x,
+    y: spawn.y,
     alive: true,
     escaped: false,
     hidden: false,
@@ -95,18 +112,19 @@ function createPlayer(id, name) {
 }
 
 function makeGame(players) {
-  const list = players.map(p => ({
-    ...createPlayer(p.id, p.name)
-  }));
+  const list = players.map((p, i) =>
+    createPlayer(p.id, p.name, i)
+  );
 
   const hunter = list[Math.floor(Math.random() * list.length)];
   hunter.role = "hunter";
-  hunter.x = 1300;
-  hunter.y = 800;
+  hunter.x = 1400;
+  hunter.y = 1100;
 
   return {
     started: true,
     ended: false,
+    winner: null,
     players: list,
     tasks: stationTemplate.map(t => ({
       ...t,
@@ -117,10 +135,13 @@ function makeGame(players) {
   };
 }
 
-function publicLobby(room) {
+function publicPlayers(room) {
   return room.players.map(p => ({
     id: p.id,
-    name: p.name
+    name: p.name,
+    role: p.role,
+    alive: p.alive,
+    escaped: p.escaped
   }));
 }
 
@@ -128,7 +149,7 @@ function sendLobby(room) {
   io.to(room.code).emit("lobby", {
     code: room.code,
     host: room.host,
-    players: publicLobby(room)
+    players: publicPlayers(room)
   });
 }
 
@@ -136,11 +157,19 @@ function endGame(room, winner, message) {
   if (!room.game || room.game.ended) return;
 
   room.game.ended = true;
+  room.game.winner = winner;
 
   io.to(room.code).emit("gameOver", {
     winner,
     message
   });
+}
+
+function rectCollision(x, y, radius, rect) {
+  const closestX = Math.max(rect.x, Math.min(x, rect.x + rect.w));
+  const closestY = Math.max(rect.y, Math.min(y, rect.y + rect.h));
+
+  return Math.hypot(x - closestX, y - closestY) < radius;
 }
 
 function blocked(x, y, radius) {
@@ -151,51 +180,66 @@ function blocked(x, y, radius) {
     y > MAP.height - radius
   ) return true;
 
-  return obstacles.some(o => {
-    const cx = Math.max(o.x, Math.min(x, o.x + o.w));
-    const cy = Math.max(o.y, Math.min(y, o.y + o.h));
-    return Math.hypot(x - cx, y - cy) < radius;
-  });
+  return obstacles.some(o => rectCollision(x, y, radius, o));
 }
 
 function movePlayer(p, dx, dy, speed) {
-  const len = Math.hypot(dx, dy);
+  const length = Math.hypot(dx, dy);
 
-  if (len > 0) {
-    dx /= len;
-    dy /= len;
+  if (length > 0) {
+    dx /= length;
+    dy /= length;
   }
 
   const nx = p.x + dx * speed;
   const ny = p.y + dy * speed;
 
-  if (!blocked(nx, p.y, 18)) p.x = nx;
-  if (!blocked(p.x, ny, 18)) p.y = ny;
+  if (!blocked(nx, p.y, 17)) p.x = nx;
+  if (!blocked(p.x, ny, 17)) p.y = ny;
 }
 
 function allObjectivesComplete(game) {
-  return game.tasks.every(t => t.progress >= 100) &&
-    game.fuel.every(f => f.collected);
+  return (
+    game.tasks.every(t => t.progress >= 100) &&
+    game.fuel.every(f => f.collected)
+  );
 }
 
+// Each player receives only the information their role should know.
 function getStateFor(viewer, game) {
+  const hunter = game.players.find(p => p.role === "hunter");
+  const hunterPulseActive = !!(hunter && hunter.pulse > 0);
+
   return {
     players: game.players.map(p => {
-      const teammate = p.role === viewer.role;
-      const hiddenFromViewer = p.hidden && !teammate;
+      let revealPosition = false;
+
+      if (p.id === viewer.id) {
+        revealPosition = true;
+      } else if (viewer.role === "escapee") {
+        revealPosition = p.role === "escapee" && p.alive && !p.escaped;
+      } else if (viewer.role === "hunter") {
+        revealPosition =
+          p.role === "escapee" &&
+          p.alive &&
+          !p.escaped &&
+          hunterPulseActive;
+      }
 
       return {
         id: p.id,
         name: p.name,
         role: p.role,
-        x: hiddenFromViewer ? null : p.x,
-        y: hiddenFromViewer ? null : p.y,
+        x: revealPosition ? p.x : null,
+        y: revealPosition ? p.y : null,
         alive: p.alive,
         escaped: p.escaped,
         hidden: p.hidden,
         stamina: p.stamina,
         pulse: p.pulse,
-        cooldown: p.pulseCooldown
+        pulseCooldown: p.pulseCooldown,
+        disruptCooldown: p.disruptCooldown,
+        hiddenIn: p.hiddenIn
       };
     }),
     tasks: game.tasks,
@@ -213,8 +257,20 @@ function broadcastState(room) {
   }
 }
 
+function eliminate(room, target, message) {
+  if (!target || !target.alive || target.escaped) return;
+
+  target.alive = false;
+  target.hidden = false;
+  target.hiddenIn = null;
+  target.input = {};
+
+  io.to(room.code).emit("notice", message);
+}
+
 function gameTick(room) {
   const game = room.game;
+
   if (!game || !game.started || game.ended) return;
 
   game.time++;
@@ -248,6 +304,7 @@ function gameTick(room) {
     if (p.role === "hunter") {
       let speed = 3.5;
 
+      // Q or Shift sprint.
       if (input.sprint && p.stamina > 0) {
         speed = 5.8;
         p.stamina = Math.max(0, p.stamina - 0.65);
@@ -257,86 +314,83 @@ function gameTick(room) {
 
       movePlayer(p, dx, dy, speed);
 
-      if (
-        input.pulse &&
-        !p.wasPulse &&
-        p.pulseCooldown <= 0
-      ) {
-        p.pulseCooldown = 240;
-        p.pulse = 90;
+      // R: tracking pulse. Escapees become visible to the Hunter.
+      if (input.pulse && !p.wasPulse) {
+        if (p.pulseCooldown <= 0) {
+          p.pulseCooldown = 300;
+          p.pulse = 90;
 
-        io.to(room.code).emit(
-          "notice",
-          "EPSTEIN used a tracking pulse!"
-        );
-      }
-
-      p.wasPulse = !!input.pulse;
-
-      if (
-        input.disrupt &&
-        !p.wasDisrupt &&
-        p.disruptCooldown <= 0
-      ) {
-        const task = game.tasks.find(t =>
-          distance(p, t) < 150
-        );
-
-        if (task) {
-          task.progress = Math.max(0, task.progress - 15);
-          p.disruptCooldown = 180;
-
-          io.to(room.code).emit(
+          io.to(p.id).emit("notice", "TRACKING PULSE ACTIVATED!");
+          io.to(room.code).except(p.id).emit(
             "notice",
-            "A repair station was disrupted!"
+            "The Hunter has activated a tracking pulse!"
+          );
+        } else {
+          io.to(p.id).emit(
+            "notice",
+            `Tracking pulse recharging: ${Math.ceil(p.pulseCooldown / 30)}s`
           );
         }
       }
+      p.wasPulse = !!input.pulse;
 
+      // F: disrupt the nearest repair station.
+      if (input.disrupt && !p.wasDisrupt) {
+        if (p.disruptCooldown <= 0) {
+          const task = game.tasks.find(t => distance(p, t) < 175);
+
+          if (task && task.progress > 0) {
+            task.progress = Math.max(0, task.progress - 25);
+            p.disruptCooldown = 240;
+
+            io.to(room.code).emit(
+              "notice",
+              `EPSTEIN DISRUPTED ${task.name.toUpperCase()}!`
+            );
+          } else if (task) {
+            io.to(p.id).emit("notice", "That station has no progress to disrupt.");
+          } else {
+            io.to(p.id).emit("notice", "Get closer to a repair station.");
+          }
+        } else {
+          io.to(p.id).emit(
+            "notice",
+            `Disruption recharging: ${Math.ceil(p.disruptCooldown / 30)}s`
+          );
+        }
+      }
       p.wasDisrupt = !!input.disrupt;
 
-      // Locker search. Only lockers can be searched.
-if (input.search && !p.wasSearch) {
-  const locker = hidingSpots.find(s =>
-    s.type === "Locker" && distance(p, s) < 85
-  );
+      // E: search the nearest locker.
+      if (input.search && !p.wasSearch) {
+        const locker = hidingSpots.find(s =>
+          s.type === "Locker" && distance(p, s) < 90
+        );
 
-  if (!locker) {
-    io.to(p.id).emit(
-      "notice",
-      "Get closer to a locker to search it."
-    );
-  } else {
-    const target = players.find(t =>
-      t.role === "escapee" &&
-      t.alive &&
-      t.hidden &&
-      t.hiddenIn === locker.id
-    );
+        if (!locker) {
+          io.to(p.id).emit("notice", "Stand closer to a locker to search it.");
+        } else {
+          const target = players.find(t =>
+            t.role === "escapee" &&
+            t.alive &&
+            t.hidden &&
+            t.hiddenIn === locker.id
+          );
 
-    if (target) {
-      target.alive = false;
-      target.hidden = false;
-      target.hiddenIn = null;
-
-      io.to(room.code).emit(
-        "notice",
-        `EPSTEIN FOUND ${target.name} IN A LOCKER!`
-      );
-    } else {
-      io.to(p.id).emit(
-        "notice",
-        "EMPTY LOCKER"
-      );
-    }
-  }
-}
-
-p.wasSearch = !!input.search;
-
+          if (target) {
+            eliminate(
+              room,
+              target,
+              `EPSTEIN FOUND ${target.name} IN A LOCKER!`
+            );
+          } else {
+            io.to(p.id).emit("notice", "EMPTY LOCKER");
+          }
+        }
+      }
       p.wasSearch = !!input.search;
 
-      // Catch escapees who are not hiding.
+      // Normal catching works only when an escapee is not hiding.
       for (const target of players) {
         if (
           target.role !== "escapee" ||
@@ -345,40 +399,37 @@ p.wasSearch = !!input.search;
           target.hidden
         ) continue;
 
-        if (
-          distance(p, target) < 42 &&
-          p.catchCooldown <= 0
-        ) {
-          target.alive = false;
+        if (distance(p, target) < 42 && p.catchCooldown <= 0) {
+          eliminate(room, target, `${target.name} was caught!`);
           p.catchCooldown = 35;
-
-          io.to(room.code).emit(
-            "notice",
-            `${target.name} was caught!`
-          );
+          break;
         }
       }
     } else {
-      // Hide or leave a hiding spot.
-      if (input.hide && !p.wasHide) {
+      // Escapee E: hide if close to a hiding spot, otherwise repair/collect.
+      if (input.interact && !p.wasHide) {
         if (p.hidden) {
           p.hidden = false;
           p.hiddenIn = null;
+          io.to(p.id).emit("notice", "You left your hiding place.");
         } else {
-          const spot = hidingSpots.find(s =>
-            distance(p, s) < 65
-          );
+          const spot = hidingSpots.find(s => distance(p, s) < 65);
 
           if (spot) {
             p.hidden = true;
             p.hiddenIn = spot.id;
             p.x = spot.x;
             p.y = spot.y;
+
+            io.to(p.id).emit(
+              "notice",
+              `Hiding in ${spot.type.toLowerCase()}.`
+            );
           }
         }
       }
 
-      p.wasHide = !!input.hide;
+      p.wasHide = !!input.interact;
 
       if (!p.hidden) {
         let speed = input.crouch ? 1.5 : 2.9;
@@ -387,22 +438,20 @@ p.wasSearch = !!input.search;
           speed = 4.3;
           p.stamina = Math.max(0, p.stamina - 0.7);
         } else {
-          p.stamina = Math.min(100, p.stamina + 0.4);
+          p.stamina = Math.min(100, p.stamina + 0.45);
         }
 
         movePlayer(p, dx, dy, speed);
+      } else {
+        p.stamina = Math.min(100, p.stamina + 0.5);
       }
 
+      // Repair while E is held, but do not repair while hidden.
       if (input.interact && !p.hidden) {
-        const task = game.tasks.find(t =>
-          distance(p, t) < 75
-        );
+        const task = game.tasks.find(t => distance(p, t) < 90);
 
         if (task && task.progress < 100) {
-          task.progress = Math.min(
-            100,
-            task.progress + 0.18
-          );
+          task.progress = Math.min(100, task.progress + 0.16);
         }
 
         const fuel = game.fuel.find(f =>
@@ -411,19 +460,20 @@ p.wasSearch = !!input.search;
 
         if (fuel) {
           fuel.collected = true;
-
           io.to(room.code).emit(
             "notice",
-            `${p.name} found a fuel can.`
+            `${p.name} collected a fuel can.`
           );
         }
 
         if (
           allObjectivesComplete(game) &&
-          Math.hypot(2350 - p.x, 1850 - p.y) < 130
+          Math.hypot(2350 - p.x, 1850 - p.y) < 150
         ) {
           p.escaped = true;
           p.alive = false;
+          p.hidden = false;
+          p.hiddenIn = null;
 
           io.to(room.code).emit(
             "notice",
@@ -438,20 +488,18 @@ p.wasSearch = !!input.search;
   const remaining = escapees.filter(p => p.alive && !p.escaped);
 
   if (escapees.length && remaining.length === 0) {
-    const escaped = escapees.some(p => p.escaped);
+    const anyoneEscaped = escapees.some(p => p.escaped);
 
     endGame(
       room,
-      escaped ? "escapees" : "hunter",
-      escaped
-        ? "The escapees successfully escaped!"
+      anyoneEscaped ? "escapees" : "hunter",
+      anyoneEscaped
+        ? "The escapees who survived made it off the island!"
         : "EPSTEIN caught everyone."
     );
-
     return;
   }
 
-  // Send 15 state updates per second.
   if (game.time % 2 === 0) {
     broadcastState(room);
   }
@@ -465,7 +513,6 @@ function startRoom(room) {
 
   const hunter = room.game.players.find(p => p.role === "hunter");
 
-  // Every client receives the same selected Hunter.
   io.to(room.code).emit("gameStarted", {
     map: MAP,
     obstacles,
@@ -478,6 +525,7 @@ function startRoom(room) {
     game: getStateFor(hunter, room.game)
   });
 
+  broadcastState(room);
   return true;
 }
 
@@ -510,7 +558,12 @@ function removePlayer(socket) {
     const remaining = escapees.filter(p => p.alive && !p.escaped);
 
     if (escapees.length && remaining.length === 0) {
-      endGame(room, "hunter", "The match has ended.");
+      const escaped = escapees.some(p => p.escaped);
+      endGame(
+        room,
+        escaped ? "escapees" : "hunter",
+        "The match has ended."
+      );
     }
   }
 
@@ -604,12 +657,12 @@ io.on("connection", socket => {
     if (!room || !room.game || room.game.ended) return;
 
     const player = room.players.find(p => p.id === socket.id);
-    if (!player || !player.alive) return;
+    if (!player || !player.alive || player.escaped) return;
 
     const allowed = [
       "up", "down", "left", "right",
       "sprint", "crouch", "interact",
-      "hide", "pulse", "disrupt", "search"
+      "pulse", "disrupt", "search"
     ];
 
     const clean = {};
@@ -622,7 +675,6 @@ io.on("connection", socket => {
   });
 
   socket.on("leaveRoom", () => removePlayer(socket));
-
   socket.on("disconnect", () => removePlayer(socket));
 });
 
