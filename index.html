@@ -265,6 +265,94 @@ input:focus{border-color:#d34a55}
   .hudPanel{min-width:0;padding:9px}
   #objective{max-width:160px}
 }
+
+  /* Improved interface polish */
+
+.hudPanel,
+#taskPanel,
+#staminaWrap,
+#help {
+  backdrop-filter: blur(12px);
+  border: 1px solid #8b9b8b55;
+  box-shadow:
+    0 8px 30px #0008,
+    inset 0 1px 0 #ffffff12;
+}
+
+button {
+  border-radius: 4px;
+  box-shadow: 0 4px 12px #0005;
+  transition:
+    background .2s,
+    transform .2s,
+    box-shadow .2s;
+}
+
+button:hover {
+  box-shadow: 0 5px 20px #bd354455;
+}
+
+#taskPanel {
+  border-radius: 5px;
+}
+
+.task {
+  padding: 5px 0;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.bar {
+  height: 7px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.bar span {
+  border-radius: 10px;
+  transition: width .2s;
+}
+
+#notice {
+  border-radius: 5px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 5px 25px #0009;
+}
+
+#roleText {
+  text-shadow: 0 0 15px #ffffff22;
+}
+
+#roleText[style*="rgb"] {
+  text-shadow: 0 0 15px #e34a5866;
+}
+
+#roleReveal .revealBox {
+  border-radius: 8px;
+  box-shadow:
+    0 0 100px #000,
+    0 0 35px #9c263344;
+}
+
+#spinnerName {
+  transition: color .1s;
+  text-shadow: 0 0 25px #ffffff55;
+}
+
+#revealResult {
+  animation: revealPop .5s ease-out;
+}
+
+@keyframes revealPop {
+  from {
+    opacity: 0;
+    transform: scale(.65);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 </style>
 </head>
 
