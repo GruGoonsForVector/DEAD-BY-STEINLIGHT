@@ -3,43 +3,49 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPSTEIN</title>
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EPSTEIN | THE ISLAND</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;700;800&display=swap');
 
+:root{--red:#d13b3b;--bg:#080b0b;--panel:#111716;--muted:#82908b}
 *{box-sizing:border-box}
-body{margin:0;background:#080909;color:#eee;font-family:Inter,sans-serif;overflow:hidden}
+body{margin:0;background:var(--bg);color:#eee;font-family:Inter,Arial;overflow:hidden}
 button,input{font:inherit}
-button{cursor:pointer;border:1px solid #684040;background:#241313;color:white;padding:13px 20px;border-radius:5px;font-weight:800;transition:.2s}
-button:hover{background:#632525;transform:translateY(-2px)}
-input{background:#111;color:white;border:1px solid #444;padding:13px;border-radius:5px;width:100%;outline:none}
-input:focus{border-color:#b44}
-#menu{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#251313 0%,#080909 70%)}
-.panel{width:min(430px,92vw);padding:35px;background:#101111;border:1px solid #533333;box-shadow:0 0 70px #000;text-align:center}
-.logo{font:800 48px Orbitron,sans-serif;letter-spacing:7px;color:#c33;text-shadow:0 0 20px #900}
-.subtitle{color:#888;letter-spacing:4px;font-size:11px;margin:8px 0 30px}
-.field{margin:12px 0}
-.actions{display:grid;gap:10px;margin-top:18px}
-.note{font-size:11px;color:#777;line-height:1.6;margin-top:22px}
-#game{display:none;position:fixed;inset:0;background:#080909}
-canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
+button{background:#751f24;color:white;border:1px solid #b34b4b;padding:13px 18px;cursor:pointer;font-weight:800;transition:.15s;border-radius:3px}
+button:hover{background:#a32e34;transform:translateY(-1px)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+input{width:100%;padding:13px;background:#080d0c;color:white;border:1px solid #394541;outline:none;border-radius:3px}
+input:focus{border-color:#c44}
+#menu{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#2b1718,#101211 45%,#050707 100%);overflow:auto;padding:20px}
+.panel{width:min(460px,100%);background:#101514;border:1px solid #493232;padding:32px;box-shadow:0 20px 100px #000;text-align:center}
+.logo{font:900 clamp(38px,9vw,65px) Orbitron;color:#ce4141;letter-spacing:7px;text-shadow:0 0 30px #9c1515}
+.subtitle{font:11px Orbitron;letter-spacing:4px;color:#89918d;margin:9px 0 30px}
+.field{margin:10px 0}
+.actions{display:grid;gap:10px;margin-top:15px}
+.secondary{background:#202725;border-color:#53605a}
+.small{font-size:11px;color:#75817c;line-height:1.7;margin-top:22px}
+#status{font-size:12px;color:#c5a36a;min-height:20px;margin-top:12px}
+#lobby{display:none;position:fixed;inset:0;place-items:center;background:radial-gradient(#241415,#070909)}
+#lobby .panel{width:min(500px,95vw)}
+.roomcode{font:700 clamp(13px,3vw,22px) Orbitron;color:#e65d5d;letter-spacing:2px;overflow-wrap:anywhere;margin:17px 0}
+#roster{margin:20px 0;text-align:left;line-height:2.5;background:#090e0d;padding:12px 18px;border:1px solid #303b36}
+.playerline{display:flex;justify-content:space-between;border-bottom:1px solid #26302b;font-size:13px}
+#game{display:none;position:fixed;inset:0;background:#070a08}
+canvas{display:block;width:100%;height:100%}
 #hud{position:absolute;inset:0;pointer-events:none}
-.hudtop{display:flex;justify-content:space-between;padding:20px;gap:10px}
-.hudbox{background:#090b0be8;border:1px solid #444;padding:12px 16px;border-radius:5px;font-size:12px}
-#objective{position:absolute;top:85px;left:50%;transform:translateX(-50%);text-align:center;background:#090b0be8;padding:12px 24px;border:1px solid #533;border-radius:5px;min-width:260px}
-#players{position:absolute;bottom:20px;left:20px;background:#090b0be8;border:1px solid #444;padding:12px;min-width:190px;font-size:12px}
-#controls{position:absolute;bottom:20px;right:20px;text-align:right;color:#aaa;font-size:11px;line-height:1.8}
-#message{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font:800 32px Orbitron;color:#fff;text-align:center;text-shadow:0 0 20px #c00;display:none}
-#lobby{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#080909}
-#lobby .panel{width:min(500px,94vw)}
-#roomCode{font:800 35px Orbitron;color:#d55;letter-spacing:8px;margin:15px}
-#playerList{margin:20px 0;text-align:left;line-height:2;color:#bbb}
-#toast{position:absolute;top:15px;left:50%;transform:translateX(-50%);background:#181818;padding:12px 22px;border:1px solid #744;display:none;z-index:5}
-#serverSettings{font-size:11px;color:#777;margin-top:12px}
-#serverSettings summary{cursor:pointer}
-#serverSettings input{margin-top:8px}
+.topbar{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px}
+.hudbox{background:#080d0de8;border:1px solid #4b514b;padding:11px 14px;font-size:12px;box-shadow:0 4px 15px #0008}
+#objective{position:absolute;top:68px;left:50%;transform:translateX(-50%);text-align:center;background:#090e0de8;border:1px solid #55403b;padding:12px 22px;font-size:12px;min-width:240px;max-width:90vw}
+#rosterHud{position:absolute;bottom:15px;left:15px;background:#080d0de8;border:1px solid #4b514b;padding:12px;min-width:180px;font-size:12px;line-height:1.9}
+#help{position:absolute;bottom:15px;right:15px;background:#080d0de8;border:1px solid #4b514b;padding:12px;text-align:right;font-size:11px;color:#aeb8b0;line-height:1.8}
+#centerMessage{position:absolute;top:43%;left:50%;transform:translate(-50%,-50%);font:900 clamp(20px,5vw,40px) Orbitron;text-align:center;color:white;text-shadow:0 0 25px #c00;display:none;width:90%}
+#toast{position:fixed;top:15px;left:50%;transform:translateX(-50%);padding:12px 20px;background:#171d1b;border:1px solid #9b4141;z-index:10;display:none;font-size:13px}
+#exitButton{position:absolute;top:12px;left:50%;transform:translateX(-50%);pointer-events:auto;display:none;background:#282c29;border-color:#888;font-size:10px;padding:8px}
+.bar{width:110px;height:5px;background:#303a35;margin-top:5px}
+.bar span{display:block;height:100%;background:#c94b4b}
+#loading{color:#c88}
 </style>
 </head>
 <body>
@@ -47,133 +53,514 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
 <div id="menu">
  <div class="panel">
   <div class="logo">EPSTEIN</div>
-  <div class="subtitle">THE ISLAND // MULTIPLAYER HORROR</div>
-  <div class="field"><input id="username" maxlength="16" placeholder="ENTER YOUR NAME"></div>
+  <div class="subtitle">THE ISLAND // ASYMMETRIC HORROR</div>
+  <div class="field"><input id="username" maxlength="16" placeholder="YOUR PLAYER NAME"></div>
   <div class="actions">
-   <button onclick="createRoom()">CREATE ROOM</button>
-   <input id="joinCode" maxlength="5" placeholder="ROOM CODE">
-   <button onclick="joinRoom()">JOIN ROOM</button>
+   <button onclick="hostGame()">CREATE MULTIPLAYER ROOM</button>
+   <div style="color:#68746d;font-size:11px;margin:8px">OR JOIN AN EXISTING ROOM</div>
+   <input id="roomInput" placeholder="PASTE HOST ROOM ID">
+   <button class="secondary" onclick="joinGame()">JOIN ROOM</button>
   </div>
-  <div id="serverSettings">
-   <details>
-    <summary>SERVER CONNECTION</summary>
-    <input id="serverUrl" placeholder="https://your-server.onrender.com">
-   </details>
+  <div id="status">Connecting to the multiplayer system when you play.</div>
+  <div class="small">
+   1 HUNTER. 4 INVESTIGATORS.<br>
+   COLLECT EVIDENCE. UNLOCK THE EXIT. ESCAPE.<br><br>
+   Multiplayer requires an internet connection.<br>
+   The host must remain connected.
   </div>
-  <div class="note">1 HUNTER. 4 INVESTIGATORS.<br>COLLECT EVIDENCE. FIND THE EXIT. SURVIVE.</div>
  </div>
 </div>
 
 <div id="lobby">
  <div class="panel">
-  <div class="logo" style="font-size:34px">LOBBY</div>
-  <div class="subtitle">WAITING FOR PLAYERS</div>
-  ROOM CODE
-  <div id="roomCode">-----</div>
-  <button onclick="copyCode()">COPY INVITE CODE</button>
-  <div id="playerList">Waiting for players...</div>
-  <button id="startButton" onclick="startGame()" style="width:100%">START MATCH</button>
-  <button onclick="leaveRoom()" style="width:100%;margin-top:10px">LEAVE ROOM</button>
-  <div class="note">The host starts the match. Five players recommended.</div>
+  <div class="logo" style="font-size:35px">LOBBY</div>
+  <div class="subtitle">WAITING FOR INVESTIGATORS</div>
+  <div style="font-size:10px;color:#929b95">YOUR ROOM ID</div>
+  <div class="roomcode" id="roomCode">CONNECTING...</div>
+  <button class="secondary" onclick="copyRoom()">COPY ROOM ID</button>
+  <div id="roster"></div>
+  <button id="startBtn" onclick="startMatch()" style="width:100%">START MATCH</button>
+  <button class="secondary" onclick="leaveGame()" style="width:100%;margin-top:9px">LEAVE ROOM</button>
+  <div class="small">Minimum 2 players. Maximum 5 players.<br>One random player becomes the Hunter.</div>
  </div>
 </div>
 
 <div id="game">
  <canvas id="canvas"></canvas>
  <div id="hud">
-  <div class="hudtop">
-   <div class="hudbox" id="role">ROLE: WAITING</div>
-   <div class="hudbox" id="stamina">STAMINA: 100%</div>
-   <div class="hudbox" id="evidence">EVIDENCE: 0/5</div>
+  <div class="topbar">
+   <div class="hudbox" id="roleHud">ROLE: ?</div>
+   <div class="hudbox" id="staminaHud">STAMINA: 100%</div>
+   <div class="hudbox" id="evidenceHud">EVIDENCE: 0/5</div>
   </div>
-  <div id="objective">WAITING FOR MATCH...</div>
-  <div id="players"></div>
-  <div id="controls">WASD - MOVE<br>SHIFT - SPRINT<br>E - COLLECT / ESCAPE</div>
-  <div id="message"></div>
+  <div id="objective">FIND THE EVIDENCE</div>
+  <div id="rosterHud"></div>
+  <div id="help">WASD / ARROWS: MOVE<br>SHIFT: SPRINT<br>E: INTERACT<br>ESC: PAUSE / LEAVE</div>
+  <div id="centerMessage"></div>
+  <button id="exitButton" onclick="leaveGame()">LEAVE MATCH</button>
  </div>
 </div>
+
 <div id="toast"></div>
 
 <script>
 const $=id=>document.getElementById(id);
-let socket=null, room=null, isHost=false, game=null;
-let keys={},lastInput=0,toastTimer;
-const canvas=$('canvas'),ctx=canvas.getContext('2d');
+const canvas=$('canvas');
+const ctx=canvas.getContext('2d');
 
-function notify(t){
- $('toast').textContent=t;
+let peer=null;
+let connections=[];
+let host=false;
+let roomId='';
+let myId='';
+let myName='';
+let players=[];
+let game=null;
+let currentScreen='menu';
+let keys={};
+let lastSent=0;
+let interactWasDown=false;
+let lastInteract=0;
+let toastTimer=null;
+let lastFrame=0;
+
+const W=1200,H=900,REQUIRED=5;
+
+const obstacles=[
+ {x:180,y:120,w:180,h:130},
+ {x:760,y:100,w:210,h:150},
+ {x:170,y:650,w:200,h:130},
+ {x:770,y:650,w:210,h:130},
+ {x:480,y:290,w:100,h:100},
+ {x:650,y:510,w:100,h:100},
+ {x:400,y:490,w:100,h:55},
+ {x:900,y:450,w:60,h:100}
+];
+
+const trees=[
+ [80,90],[440,90],[690,100],[1080,100],
+ [80,550],[470,610],[1100,600],[550,800],
+ [100,820],[1080,820],[400,370],[850,300],
+ [1000,650],[300,400],[700,720],[570,180]
+];
+
+function notify(msg){
+ $('toast').textContent=msg;
  $('toast').style.display='block';
  clearTimeout(toastTimer);
- toastTimer=setTimeout(()=>$('toast').style.display='none',2500);
+ toastTimer=setTimeout(()=>$('toast').style.display='none',2800);
 }
-function connect(){
- const url=$('serverUrl').value.trim()||'https://epstein-game-server.onrender.com';
- if(socket?.connected)return true;
- socket=io(url,{transports:['websocket','polling']});
- socket.on('connect_error',()=>notify('Could not connect to server. Check the server URL.'));
- socket.on('roomCreated',d=>enterRoom(d));
- socket.on('roomJoined',d=>enterRoom(d));
- socket.on('errorMessage',m=>notify(m));
- socket.on('lobbyUpdate',d=>{
-  room=d;
-  $('roomCode').textContent=d.code;
-  $('playerList').innerHTML=d.players.map(p=>
-   `<div>● ${escapeHTML(p.name)} ${p.id===d.host?' <b style="color:#c55">HOST</b>':''}</div>`
-  ).join('');
-  $('startButton').disabled=!isHost||d.players.length<2;
-  $('startButton').textContent=d.players.length<2?'NEED MORE PLAYERS':'START MATCH';
- });
- socket.on('gameState',d=>{
-  game=d;
-  if($('game').style.display!=='block'){
-   $('menu').style.display='none';
-   $('lobby').style.display='none';
-   $('game').style.display='block';
-   resize();
+
+function status(msg){$('status').textContent=msg;}
+
+function showScreen(s){
+ currentScreen=s;
+ $('menu').style.display=s==='menu'?'grid':'none';
+ $('lobby').style.display=s==='lobby'?'grid':'none';
+ $('game').style.display=s==='game'?'block':'none';
+}
+
+function safeName(n){
+ return String(n||'Player').replace(/[<>]/g,'').slice(0,16);
+}
+
+function createPeer(){
+ return new Promise((resolve,reject)=>{
+  if(typeof Peer==='undefined'){
+   reject(new Error('PeerJS could not load. Check your internet connection.'));
+   return;
   }
-  updateHUD();
+  const p=new Peer(undefined,{
+   debug:1,
+   config:{
+    iceServers:[
+     {urls:'stun:stun.l.google.com:19302'},
+     {urls:'stun:stun1.l.google.com:19302'}
+    ]
+   }
+  });
+  p.on('open',id=>resolve({peer:p,id}));
+  p.on('error',err=>reject(err));
+  p.on('disconnected',()=>notify('Network connection interrupted.'));
  });
- socket.on('matchEnded',d=>{
-  $('message').style.display='block';
-  $('message').innerHTML=escapeHTML(d.message);
- });
- socket.on('returnedToLobby',()=>{
-  game=null;
-  $('game').style.display='none';
-  $('lobby').style.display='flex';
- });
- socket.on('disconnect',()=>notify('Disconnected from server'));
- return true;
 }
-function escapeHTML(s){
+
+function getPlayer(id){
+ return players.find(p=>p.id===id);
+}
+
+function makePlayer(id,name){
+ return {
+  id,
+  name:safeName(name),
+  role:'survivor',
+  x:100+Math.random()*160,
+  y:120+Math.random()*160,
+  stamina:100,
+  caught:false,
+  escaped:false,
+  input:{}
+ };
+}
+
+function hostGame(){
+ myName=safeName($('username').value||'Player');
+ status('Creating room...');
+ host=true;
+ createPeer().then(({peer:p,id})=>{
+  peer=p;
+  myId=id;
+  roomId=id;
+  players=[makePlayer(myId,myName)];
+  setupHost();
+  showScreen('lobby');
+  renderLobby();
+  notify('Room created!');
+ }).catch(e=>{
+  status('Connection failed: '+e.message);
+ });
+}
+
+function setupHost(){
+ peer.on('connection',conn=>{
+  conn.on('open',()=>{
+   connections.push(conn);
+  });
+  conn.on('data',data=>{
+   if(data.type==='join'){
+    if(game){
+     conn.send({type:'error',message:'Match already started.'});
+     return;
+    }
+    if(players.length>=5){
+     conn.send({type:'error',message:'Room is full.'});
+     return;
+    }
+    if(getPlayer(conn.peer)){
+     conn.send({type:'error',message:'Already joined.'});
+     return;
+    }
+    players.push(makePlayer(conn.peer,data.name));
+    conn.send({type:'joined',id:conn.peer});
+    renderLobby();
+    broadcastLobby();
+    notify(data.name+' joined the room');
+   }
+   if(data.type==='input'){
+    const p=getPlayer(conn.peer);
+    if(p&&game&&!p.caught&&!p.escaped){
+     p.input=data.input||{};
+     if(data.interact)interact(p);
+    }
+   }
+  });
+  conn.on('close',()=>removeConnection(conn.peer));
+  conn.on('error',()=>removeConnection(conn.peer));
+ });
+}
+
+function removeConnection(id){
+ connections=connections.filter(c=>c.peer!==id);
+ const before=players.length;
+ players=players.filter(p=>p.id!==id);
+ if(players.length!==before){
+  renderLobby();
+  if(game)checkWinner();
+  broadcastLobby();
+  broadcastState();
+  notify('A player disconnected.');
+ }
+}
+
+function joinGame(){
+ myName=safeName($('username').value||'Player');
+ roomId=$('roomInput').value.trim();
+ if(!roomId)return status('Enter a room ID first.');
+ status('Connecting to host...');
+ host=false;
+
+ createPeer().then(({peer:p,id})=>{
+  peer=p;
+  myId=id;
+  const conn=peer.connect(roomId,{reliable:true});
+  let finished=false;
+
+  const timeout=setTimeout(()=>{
+   if(!finished){
+    status('Could not connect. Check the room ID and try again.');
+    peer.destroy();
+   }
+  },15000);
+
+  conn.on('open',()=>{
+   conn.send({type:'join',name:myName});
+  });
+
+  conn.on('data',data=>{
+   if(data.type==='joined'){
+    finished=true;
+    clearTimeout(timeout);
+    connections=[conn];
+    setupGuest(conn);
+    showScreen('lobby');
+    $('roomCode').textContent=roomId;
+    notify('Joined room!');
+   }
+   if(data.type==='error'){
+    finished=true;
+    clearTimeout(timeout);
+    status(data.message);
+    peer.destroy();
+   }
+   if(data.type==='lobby'){
+    players=data.players;
+    renderLobby();
+   }
+   if(data.type==='state'){
+    game=data.game;
+    players=game.players;
+    if(currentScreen!=='game')showScreen('game');
+    updateHUD();
+   }
+   if(data.type==='end'){
+    showEnd(data.message);
+   }
+   if(data.type==='lobbyAgain'){
+    game=null;
+    showScreen('lobby');
+    renderLobby();
+   }
+  });
+
+  conn.on('close',()=>{
+   notify('Connection to host lost.');
+   game=null;
+   showScreen('menu');
+  });
+  conn.on('error',()=>status('Connection failed.'));
+ }).catch(e=>status('Could not connect: '+e.message));
+}
+
+function setupGuest(conn){
+ peer.on('disconnected',()=>{
+  notify('Disconnected from network.');
+ });
+}
+
+function broadcastLobby(){
+ const data={type:'lobby',players,host:myId,roomId};
+ connections.forEach(c=>{if(c.open)c.send(data)});
+}
+
+function renderLobby(){
+ $('roomCode').textContent=roomId;
+ $('roster').innerHTML=players.map((p,i)=>
+  `<div class="playerline"><span>${i+1}. ${escapeText(p.name)}</span><span>${p.id===myId?'HOST': 'READY'}</span></div>`
+ ).join('');
+ $('startBtn').disabled=!host||players.length<2;
+ $('startBtn').textContent=players.length<2?'WAITING FOR PLAYERS':'START MATCH';
+}
+
+function escapeText(s){
  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function createRoom(){
- if(!connect())return;
- socket.emit('createRoom',{name:$('username').value.trim()||'Player'});
+
+function copyRoom(){
+ navigator.clipboard?.writeText(roomId).then(()=>notify('Room ID copied!')).catch(()=>notify('Copy the room ID manually.'));
 }
-function joinRoom(){
- if(!connect())return;
- socket.emit('joinRoom',{name:$('username').value.trim()||'Player',code:$('joinCode').value.trim().toUpperCase()});
+
+function startMatch(){
+ if(!host||players.length<2)return;
+ const hunter=players[Math.floor(Math.random()*players.length)];
+
+ players.forEach((p,i)=>{
+  p.role=p.id===hunter.id?'hunter':'survivor';
+  p.caught=false;
+  p.escaped=false;
+  p.stamina=100;
+  p.input={};
+  p.x=p.role==='hunter'?600:100+(i*65);
+  p.y=p.role==='hunter'?450:140+(i*75);
+ });
+
+ game={
+  evidence:0,
+  required:REQUIRED,
+  items:[
+   {id:0,x:120,y:300,taken:false},
+   {id:1,x:440,y:160,taken:false},
+   {id:2,x:1040,y:310,taken:false},
+   {id:3,x:390,y:740,taken:false},
+   {id:4,x:1040,y:730,taken:false}
+  ],
+  obstacles,
+  time:0,
+  ended:false
+ };
+
+ showScreen('game');
+ updateHUD();
+ broadcastState();
+ notify('The match has begun!');
 }
-function enterRoom(d){
- room=d;isHost=d.host===socket.id;
- $('menu').style.display='none';
- $('lobby').style.display='flex';
- $('roomCode').textContent=d.code;
- socket.emit('getLobby');
+
+function broadcastState(){
+ if(!host||!game)return;
+ const data={type:'state',game:{...game,players:players.map(p=>({...p,input:{}}))}};
+ connections.forEach(c=>{if(c.open)c.send(data)});
 }
-function startGame(){socket.emit('startGame')}
-function leaveRoom(){
- socket.emit('leaveRoom');
- $('lobby').style.display='none';
- $('menu').style.display='flex';
- room=null;
+
+function sendInput(){
+ if(host||!connections.length)return;
+ const conn=connections[0];
+ if(!conn.open)return;
+
+ const input={
+  up:!!keys.w||!!keys.arrowup,
+  down:!!keys.s||!!keys.arrowdown,
+  left:!!keys.a||!!keys.arrowleft,
+  right:!!keys.d||!!keys.arrowright,
+  sprint:!!keys.shift
+ };
+
+ const interactDown=!!keys.e;
+ const interact=interactDown&&!interactWasDown&&Date.now()-lastInteract>250;
+ if(interact)lastInteract=Date.now();
+ interactWasDown=interactDown;
+
+ conn.send({type:'input',input,interact});
 }
-function copyCode(){
- navigator.clipboard?.writeText(room?.code||'');
- notify('Room code copied');
+
+function distance(a,b){
+ return Math.hypot(a.x-b.x,a.y-b.y);
 }
+
+function collides(x,y){
+ const r=14;
+ if(x<r||y<r||x>W-r||y>H-r)return true;
+ return obstacles.some(o=>
+  x+r>o.x&&x-r<o.x+o.w&&
+  y+r>o.y&&y-r<o.y+o.h
+ );
+}
+
+function interact(p){
+ if(!game||game.ended||p.role!=='survivor'||p.caught||p.escaped)return;
+
+ if(game.evidence>=REQUIRED&&p.x>1080&&p.y>365&&p.y<530){
+  p.escaped=true;
+  checkWinner();
+  return;
+ }
+
+ const item=game.items.find(e=>!e.taken&&distance(e,p)<45);
+ if(item){
+  item.taken=true;
+  game.evidence++;
+  notify(p.name+' found evidence!');
+  broadcastState();
+ }
+}
+
+function checkWinner(){
+ if(!host||!game||game.ended)return;
+ const survivors=players.filter(p=>p.role==='survivor');
+ const active=survivors.filter(p=>!p.caught&&!p.escaped);
+ const escaped=survivors.filter(p=>p.escaped);
+
+ if(escaped.length>0){
+  endMatch('THE INVESTIGATORS ESCAPED');
+ }else if(active.length===0){
+  endMatch('EPSTEIN WINS');
+ }
+}
+
+function endMatch(message){
+ if(game.ended)return;
+ game.ended=true;
+ connections.forEach(c=>{if(c.open)c.send({type:'end',message})});
+ showEnd(message);
+ setTimeout(()=>{
+  game=null;
+  players.forEach(p=>{
+   p.role='survivor';
+   p.caught=false;
+   p.escaped=false;
+  });
+  if(host){
+   showScreen('lobby');
+   renderLobby();
+   connections.forEach(c=>{if(c.open)c.send({type:'lobbyAgain'})});
+   broadcastLobby();
+  }
+ },6500);
+}
+
+function showEnd(message){
+ $('centerMessage').textContent=message;
+ $('centerMessage').style.display='block';
+ $('exitButton').style.display='block';
+}
+
+function updateHost(dt){
+ if(!host||!game||game.ended)return;
+ game.time+=dt;
+
+ for(const p of players){
+  if(p.caught||p.escaped)continue;
+
+  const input=p.input||{};
+  let dx=(input.right?1:0)-(input.left?1:0);
+  let dy=(input.down?1:0)-(input.up?1:0);
+  const length=Math.hypot(dx,dy)||1;
+  dx/=length;
+  dy/=length;
+
+  const moving=dx!==0||dy!==0;
+  const sprint=p.role==='survivor'&&input.sprint&&p.stamina>0&&moving;
+  const speed=p.role==='hunter'?2.9:sprint?4.1:2.65;
+
+  if(sprint)p.stamina=Math.max(0,p.stamina-dt*25);
+  else p.stamina=Math.min(100,p.stamina+dt*13);
+
+  const nx=p.x+dx*speed*dt*20;
+  const ny=p.y+dy*speed*dt*20;
+
+  if(!collides(nx,p.y))p.x=nx;
+  if(!collides(p.x,ny))p.y=ny;
+ }
+
+ const hunter=players.find(p=>p.role==='hunter');
+ if(hunter&&!hunter.caught){
+  for(const p of players){
+   if(p.role==='survivor'&&!p.caught&&!p.escaped&&distance(p,hunter)<28){
+    p.caught=true;
+    notify(p.name+' has been caught!');
+   }
+  }
+ }
+ checkWinner();
+}
+
+function updateHUD(){
+ if(!game)return;
+ const me=players.find(p=>p.id===myId);
+ if(!me)return;
+
+ $('roleHud').textContent='ROLE: '+(me.role==='hunter'?'EPSTEIN':'INVESTIGATOR');
+ $('staminaHud').innerHTML='STAMINA: '+Math.round(me.stamina)+'%<div class="bar"><span style="width:'+me.stamina+'%"></span></div>';
+ $('evidenceHud').textContent='EVIDENCE: '+game.evidence+'/'+game.required;
+
+ $('objective').textContent=me.role==='hunter'
+  ?'STOP THE INVESTIGATORS FROM ESCAPING'
+  :game.evidence>=REQUIRED?'THE EXIT IS OPEN. FIND THE EXIT!'
+  :'SEARCH THE ISLAND FOR EVIDENCE';
+
+ $('rosterHud').innerHTML=players.map(p=>
+  `<div>${p.role==='hunter'?'🔴':'●'} ${escapeText(p.name)} ${p.role==='hunter'?'[HUNTER]':p.caught?'[CAUGHT]':p.escaped?'[ESCAPED]':''}</div>`
+ ).join('');
+}
+
 function resize(){
  const dpr=Math.min(devicePixelRatio||1,2);
  canvas.width=innerWidth*dpr;
@@ -181,104 +568,193 @@ function resize(){
  ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 window.addEventListener('resize',resize);
+resize();
+
+function draw(){
+ const w=innerWidth,h=innerHeight;
+ ctx.clearRect(0,0,w,h);
+ if(!game||currentScreen!=='game')return;
+
+ const me=players.find(p=>p.id===myId);
+ if(!me)return;
+
+ const camX=Math.max(0,Math.min(W-w,me.x-w/2));
+ const camY=Math.max(0,Math.min(H-h,me.y-h/2));
+
+ ctx.save();
+ ctx.translate(-camX,-camY);
+
+ // Ground
+ ctx.fillStyle='#18231c';
+ ctx.fillRect(0,0,W,H);
+
+ // Ground texture
+ for(let x=0;x<W;x+=55){
+  for(let y=0;y<H;y+=55){
+   ctx.fillStyle=((x+y)%110===0)?'#202b21':'#1b261e';
+   ctx.fillRect(x,y,46,46);
+  }
+ }
+
+ // Roads
+ ctx.fillStyle='#34362e';
+ ctx.fillRect(0,390,W,95);
+ ctx.fillRect(550,0,95,H);
+ ctx.fillRect(0,150,1200,35);
+
+ // Buildings
+ for(const o of obstacles){
+  ctx.fillStyle='#303934';
+  ctx.fillRect(o.x,o.y,o.w,o.h);
+  ctx.fillStyle='#454b46';
+  ctx.fillRect(o.x+8,o.y+8,o.w-16,8);
+  ctx.strokeStyle='#626b64';
+  ctx.lineWidth=3;
+  ctx.strokeRect(o.x,o.y,o.w,o.h);
+  ctx.fillStyle='#151b18';
+  ctx.fillRect(o.x+o.w/2-18,o.y+o.h/2-12,36,24);
+ }
+
+ // Trees
+ for(const [x,y] of trees){
+  ctx.fillStyle='#101b13';
+  ctx.beginPath();ctx.arc(x,y,25,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#293c2a';
+  ctx.beginPath();ctx.arc(x-5,y-7,17,0,Math.PI*2);ctx.fill();
+ }
+
+ // Evidence
+ for(const item of game.items){
+  if(item.taken)continue;
+  ctx.fillStyle='#e6cc75';
+  ctx.shadowBlur=12;
+  ctx.shadowColor='#d4a84a';
+  ctx.fillRect(item.x-8,item.y-8,16,16);
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#fff1a7';
+  ctx.fillRect(item.x-3,item.y-3,6,6);
+ }
+
+ // Exit
+ ctx.fillStyle=game.evidence>=REQUIRED?'#147c49':'#652323';
+ ctx.fillRect(1100,370,65,145);
+ ctx.strokeStyle='#b9a58a';
+ ctx.lineWidth=4;
+ ctx.strokeRect(1100,370,65,145);
+ ctx.fillStyle='white';
+ ctx.font='bold 14px Inter';
+ ctx.fillText(game.evidence>=REQUIRED?'OPEN':'LOCKED',1104,360);
+
+ // Players
+ for(const p of players){
+  if(p.caught||p.escaped)continue;
+
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,p.role==='hunter'?17:14,0,Math.PI*2);
+  ctx.fillStyle=p.role==='hunter'?'#a92d32':'#c0c9c1';
+  ctx.fill();
+
+  ctx.strokeStyle=p.id===myId?'#fff':'#333';
+  ctx.lineWidth=3;
+  ctx.stroke();
+
+  ctx.fillStyle='white';
+  ctx.font='bold 12px Inter';
+  ctx.textAlign='center';
+  ctx.fillText(p.role==='hunter'?'EPSTEIN':p.name,p.x,p.y-25);
+ }
+
+ // Vision
+ const gradient=ctx.createRadialGradient(me.x,me.y,60,me.x,me.y,350);
+ gradient.addColorStop(0,'rgba(0,0,0,0)');
+ gradient.addColorStop(1,'rgba(0,0,0,.78)');
+ ctx.fillStyle=gradient;
+ ctx.fillRect(camX,camY,w,h);
+
+ // Hunter gets a wider view
+ if(me.role==='hunter'){
+  const g=ctx.createRadialGradient(me.x,me.y,80,me.x,me.y,500);
+  g.addColorStop(0,'rgba(0,0,0,0)');
+  g.addColorStop(1,'rgba(0,0,0,.38)');
+  ctx.fillStyle=g;
+  ctx.fillRect(camX,camY,w,h);
+ }
+
+ ctx.restore();
+}
+
+function frame(t){
+ const dt=Math.min((t-lastFrame)/1000||0,0.05);
+ lastFrame=t;
+
+ if(game&&currentScreen==='game'){
+  if(host){
+   const me=getPlayer(myId);
+   if(me){
+    me.input={
+     up:!!keys.w||!!keys.arrowup,
+     down:!!keys.s||!!keys.arrowdown,
+     left:!!keys.a||!!keys.arrowleft,
+     right:!!keys.d||!!keys.arrowright,
+     sprint:!!keys.shift
+    };
+    const down=!!keys.e;
+    if(down&&!interactWasDown&&Date.now()-lastInteract>250){
+     interact(me);
+     lastInteract=Date.now();
+    }
+    interactWasDown=down;
+   }
+   updateHost(dt);
+   if(t-lastSent>50){
+    broadcastState();
+    lastSent=t;
+   }
+  }else{
+   if(t-lastSent>50){
+    sendInput();
+    lastSent=t;
+   }
+  }
+  updateHUD();
+  draw();
+ }
+ requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
 window.addEventListener('keydown',e=>{
- keys[e.key.toLowerCase()]=true;
- if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+ const k=e.key.toLowerCase();
+ keys[k]=true;
+ if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
+ if(k==='escape'&&currentScreen==='game'){
+  $('exitButton').style.display=$('exitButton').style.display==='block'?'none':'block';
+ }
 });
 window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 
-function updateHUD(){
- if(!game)return;
- const me=game.players.find(p=>p.id===socket.id);
- if(!me)return;
- $('role').textContent='ROLE: '+(me.role==='hunter'?'EPSTEIN':'INVESTIGATOR');
- $('stamina').textContent='STAMINA: '+Math.round(me.stamina)+'%';
- $('evidence').textContent='EVIDENCE: '+game.evidence+'/'+game.required;
- $('objective').textContent=me.role==='hunter'
-  ?'STOP THE INVESTIGATORS FROM ESCAPING'
-  :game.evidence>=game.required?'THE EXIT IS OPEN. FIND IT!':'FIND EVIDENCE ('+game.evidence+'/'+game.required+')';
- $('players').innerHTML=game.players.map(p=>
-  `<div style="color:${p.id===socket.id?'#fff':'#aaa'}">${escapeHTML(p.name)} ${p.role==='hunter'?'[HUNTER]':p.caught?'[CAUGHT]':'[INVESTIGATOR]'}</div>`
- ).join('');
+function leaveGame(){
+ if(peer){
+  connections.forEach(c=>{try{c.close()}catch(e){}});
+  peer.destroy();
+ }
+ peer=null;
+ connections=[];
+ players=[];
+ game=null;
+ host=false;
+ roomId='';
+ myId='';
+ interactWasDown=false;
+ $('centerMessage').style.display='none';
+ $('exitButton').style.display='none';
+ showScreen('menu');
+ status('Disconnected. Ready to play again.');
 }
-function draw(){
- requestAnimationFrame(draw);
- if(!game||$('game').style.display!=='block')return;
- const w=innerWidth,h=innerHeight;
- ctx.clearRect(0,0,w,h);
- const me=game.players.find(p=>p.id===socket.id);
- if(!me)return;
- const scale=Math.min(w/900,h/650);
- const camX=me.x-w/2,camY=me.y-h/2;
- ctx.save();
- ctx.translate(-camX,-camY);
- ctx.fillStyle='#17201a';
- ctx.fillRect(0,0,1200,900);
- // Ground texture
- for(let x=0;x<1200;x+=55)for(let y=0;y<900;y+=55){
-  ctx.fillStyle=((x+y)%110===0)?'#1a281e':'#19241c';
-  ctx.fillRect(x,y,48,48);
- }
- // Paths
- ctx.fillStyle='#34332b';
- ctx.fillRect(0,390,1200,100);
- ctx.fillRect(550,0,100,900);
- // Buildings / obstacles
- for(const o of game.obstacles||[]){
-  ctx.fillStyle='#343434';ctx.fillRect(o.x,o.y,o.w,o.h);
-  ctx.strokeStyle='#626262';ctx.strokeRect(o.x,o.y,o.w,o.h);
- }
- // Evidence
- for(const e of game.items||[]){
-  if(e.taken)continue;
-  ctx.fillStyle='#e2c76b';
-  ctx.fillRect(e.x-9,e.y-9,18,18);
-  ctx.fillStyle='#fff3b0';ctx.fillRect(e.x-3,e.y-3,6,6);
- }
- // Exit
- ctx.fillStyle=game.evidence>=game.required?'#168c54':'#542222';
- ctx.fillRect(1100,390,65,100);
- ctx.fillStyle='white';ctx.font='14px Inter';ctx.fillText('EXIT',1110,380);
- // Players
- for(const p of game.players){
-  if(p.caught)continue;
-  ctx.beginPath();ctx.arc(p.x,p.y,14,0,Math.PI*2);
-  ctx.fillStyle=p.role==='hunter'?'#a22':'#b8c9c0';
-  ctx.fill();
-  ctx.strokeStyle=p.id===socket.id?'white':'#333';
-  ctx.lineWidth=3;ctx.stroke();
-  ctx.fillStyle='white';ctx.font='12px Inter';ctx.textAlign='center';
-  ctx.fillText(p.role==='hunter'?'EPSTEIN':p.name,p.x,p.y-23);
- }
- // Local vision shade
- const gradient=ctx.createRadialGradient(me.x,me.y,45,me.x,me.y,330);
- gradient.addColorStop(0,'rgba(0,0,0,0)');
- gradient.addColorStop(1,'rgba(0,0,0,.75)');
- ctx.fillStyle=gradient;ctx.fillRect(camX,camY,w,h);
- ctx.restore();
-}
-requestAnimationFrame(draw);
 
-setInterval(()=>{
- if(!socket?.connected||!game)return;
- const me=game.players.find(p=>p.id===socket.id);
- if(!me||me.caught)return;
- const now=Date.now();
- const input={
-  up:!!keys.w||!!keys.arrowup,
-  down:!!keys.s||!!keys.arrowdown,
-  left:!!keys.a||!!keys.arrowleft,
-  right:!!keys.d||!!keys.arrowright,
-  sprint:!!keys.shift,
-  interact:!!keys.e
- };
- if(input.interact&&!window.interactSent){
-  socket.emit('interact');
-  window.interactSent=true;
- }
- if(!input.interact)window.interactSent=false;
- socket.emit('input',input);
-},50);
+window.addEventListener('beforeunload',()=>{
+ if(peer)peer.destroy();
+});
 </script>
 </body>
 </html>
