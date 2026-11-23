@@ -8,111 +8,93 @@
 
 <style>
 *{box-sizing:border-box}
-
 :root{
-  --red:#b52b35;
-  --dark:#0b0f10;
-  --panel:#171e20;
-  --muted:#aab5b0;
+  --red:#c52f3d;
+  --dark:#080d0d;
+  --panel:#111a19;
+  --muted:#aab8ae;
 }
-
 body{
   margin:0;
-  background:#0b0f10;
-  color:#eee;
+  background:#080d0d;
+  color:#f0f2ed;
   font-family:Arial,sans-serif;
   overflow:hidden;
 }
-
 button,input{font:inherit}
-
 button{
-  background:#8e202b;
+  background:#922632;
   color:white;
-  border:1px solid #d34b55;
+  border:1px solid #d65a63;
   padding:13px 20px;
   cursor:pointer;
   font-weight:bold;
   letter-spacing:1px;
+  transition:.15s;
 }
-
-button:hover{background:#b52b35}
+button:hover{background:#bd3544;transform:translateY(-1px)}
 button:disabled{opacity:.4;cursor:not-allowed}
-
 input{
-  background:#0c1113;
+  background:#080d0e;
   color:white;
-  border:1px solid #46505a;
+  border:1px solid #465650;
   padding:13px;
   width:100%;
   outline:none;
 }
-
-input:focus{border-color:#bd3944}
-
-.screen{
-  display:none;
-  position:absolute;
-  inset:0;
-}
-
+input:focus{border-color:#d34a55}
+.screen{display:none;position:absolute;inset:0}
 .screen.active{display:flex}
 
 #menu{
   align-items:center;
   justify-content:center;
-  background:radial-gradient(
-    ellipse at center,
-    #303a3b 0%,
-    #11191b 60%,
-    #07090a 100%
-  );
+  background:
+    radial-gradient(ellipse at 50% 35%,#34453c 0%,#17231e 35%,#070a09 100%);
 }
-
 .menuBox{
-  width:min(460px,92vw);
-  background:#141c1fee;
-  border:1px solid #505b5e;
-  padding:32px;
-  box-shadow:0 20px 80px #000;
+  width:min(470px,92vw);
+  background:#111a18f5;
+  border:1px solid #637269;
+  padding:34px;
+  box-shadow:0 25px 100px #000;
+  position:relative;
 }
-
-.logo{text-align:center;margin-bottom:28px}
-
+.menuBox:before{
+  content:"";
+  position:absolute;
+  top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);
+}
+.logo{text-align:center;margin-bottom:30px}
 .logo h1{
-  font-size:clamp(34px,7vw,55px);
-  line-height:.92;
+  font-size:clamp(38px,7vw,60px);
+  line-height:.9;
   margin:0;
-  color:#eee;
   letter-spacing:4px;
-  text-shadow:3px 3px #8c1c29;
+  text-shadow:3px 3px #8b1d29,0 0 25px #b52c3b66;
 }
-
 .logo p{
-  letter-spacing:5px;
-  color:#b9c3c5;
-  font-size:11px;
+  letter-spacing:4px;
+  color:#b6c4b9;
+  font-size:10px;
+  margin-top:16px;
 }
-
 .field{margin:14px 0}
-
 .field label{
   display:block;
   font-size:11px;
-  color:#b9c3c5;
+  color:#b8c4bc;
   letter-spacing:2px;
   margin-bottom:7px;
 }
-
 .actions{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
   margin-top:20px;
 }
-
 .actions button{width:100%}
-
 #status{
   min-height:22px;
   color:#e18b8b;
@@ -120,41 +102,38 @@ input:focus{border-color:#bd3944}
   margin-top:15px;
   text-align:center;
 }
+.small{font-size:12px;color:var(--muted)}
 
 #lobby{
   align-items:center;
   justify-content:center;
-  background:radial-gradient(circle,#263032,#080b0c);
+  background:radial-gradient(circle,#263a30,#070b09);
 }
-
 .lobbyBox{
   width:min(600px,94vw);
   padding:30px;
-  background:#141c1f;
-  border:1px solid #566164;
+  background:#111b18;
+  border:1px solid #56685c;
+  box-shadow:0 20px 80px #000;
 }
-
 .lobbyBox h2{letter-spacing:4px;margin-top:0}
-
 .roomCode{
-  font-size:32px;
-  letter-spacing:8px;
-  color:#f0c6c6;
+  font-size:34px;
+  letter-spacing:9px;
+  color:#f2c9c9;
   text-align:center;
   padding:18px;
-  background:#080b0e;
+  background:#080d0b;
   margin:15px 0;
+  border:1px solid #36463c;
 }
-
 #players{list-style:none;padding:0;margin:18px 0}
-
 #players li{
-  padding:12px;
-  background:#263033;
-  margin:6px 0;
-  border-left:3px solid #a72a36;
+  padding:13px;
+  background:#202d27;
+  margin:7px 0;
+  border-left:3px solid #b52b39;
 }
-
 .lobbyBottom{
   display:flex;
   justify-content:space-between;
@@ -162,157 +141,126 @@ input:focus{border-color:#bd3944}
   align-items:center;
 }
 
-.small{font-size:12px;color:var(--muted)}
-
 #game{background:#17251c}
-
-#world{
-  width:100%;
-  height:100%;
-  display:block;
-}
-
-#hud{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-}
-
+#world{width:100%;height:100%;display:block}
+#hud{position:absolute;inset:0;pointer-events:none}
 .hudTop{
   position:absolute;
-  top:15px;
-  left:15px;
-  right:15px;
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  align-items:flex-start;
+  top:14px;left:14px;right:14px;
+  display:flex;justify-content:space-between;
+  gap:10px;align-items:flex-start;
 }
-
 .hudPanel{
-  background:#101819eF;
-  border:1px solid #66716c;
+  background:#0a110feF;
+  border:1px solid #627267;
   padding:12px 15px;
   min-width:150px;
+  box-shadow:0 5px 20px #0006;
 }
-
 .hudTitle{
   font-size:10px;
   letter-spacing:2px;
-  color:#c0cbc2;
+  color:#b6c6b9;
   margin-bottom:6px;
 }
-
-#roleText{font-size:19px;font-weight:bold}
-
-#objective{
-  font-size:13px;
-  max-width:280px;
-  line-height:1.5;
-}
-
+#roleText{font-size:20px;font-weight:bold;color:#e6e9e1}
+#objective{font-size:13px;max-width:280px;line-height:1.5}
 #taskPanel{
-  position:absolute;
-  left:15px;
-  bottom:15px;
-  width:250px;
-  background:#101819eF;
-  border:1px solid #66716c;
-  padding:13px;
+  position:absolute;left:14px;bottom:14px;
+  width:260px;background:#0a110feF;
+  border:1px solid #627267;padding:13px;
 }
-
-.task{
-  font-size:12px;
-  margin:9px 0;
-  color:#e0e7df;
-}
-
-.bar{
-  height:5px;
-  background:#39443d;
-  margin-top:4px;
-}
-
-.bar span{
-  display:block;
-  height:100%;
-  background:#b13b43;
-  width:0%;
-}
-
+.task{font-size:12px;margin:10px 0;color:#e0e7df}
+.bar{height:6px;background:#303d34;margin-top:5px}
+.bar span{display:block;height:100%;background:#bd3c48;width:0%}
 #staminaWrap{
-  position:absolute;
-  right:15px;
-  bottom:20px;
-  width:190px;
-  background:#101819eF;
-  padding:12px;
-  border:1px solid #66716c;
+  position:absolute;right:14px;bottom:18px;
+  width:190px;background:#0a110feF;
+  padding:12px;border:1px solid #627267;
 }
-
-#stamina{
-  height:9px;
-  background:#39443d;
-  margin-top:7px;
-}
-
-#stamina span{
-  height:100%;
-  display:block;
-  background:#d6d1a1;
-  width:100%;
-}
-
+#stamina{height:9px;background:#303d34;margin-top:7px}
+#stamina span{height:100%;display:block;background:#d6d1a1;width:100%}
 #notice{
-  position:absolute;
-  top:105px;
-  left:50%;
+  position:absolute;top:105px;left:50%;
   transform:translateX(-50%);
-  background:#101819ee;
-  padding:12px 20px;
-  border:1px solid #777;
-  opacity:0;
-  transition:opacity .2s;
+  background:#0b120fee;padding:12px 20px;
+  border:1px solid #7d8c80;
+  opacity:0;transition:opacity .2s;
   text-align:center;
 }
-
 #notice.show{opacity:1}
-
 #help{
-  position:absolute;
-  right:15px;
-  top:100px;
-  background:#101819eF;
-  padding:12px;
-  border:1px solid #59645e;
-  font-size:11px;
-  line-height:1.8;
-  color:#d7dfd8;
+  position:absolute;right:14px;top:100px;
+  background:#0a110feF;padding:13px;
+  border:1px solid #627267;
+  font-size:11px;line-height:1.9;color:#d7e0d8;
 }
 
+/* Role spinner */
+#roleReveal{
+  display:none;
+  position:absolute;inset:0;
+  z-index:20;
+  align-items:center;
+  justify-content:center;
+  background:#030605f5;
+  text-align:center;
+}
+#roleReveal.active{display:flex}
+.revealBox{
+  width:min(600px,92vw);
+  padding:35px 20px;
+  background:linear-gradient(145deg,#17221d,#090e0c);
+  border:1px solid #66776a;
+  box-shadow:0 0 80px #000;
+}
+.revealEyebrow{
+  color:#b4c2b7;
+  letter-spacing:5px;
+  font-size:11px;
+}
+#spinnerName{
+  margin:35px 0;
+  font-size:clamp(32px,8vw,65px);
+  font-weight:900;
+  letter-spacing:3px;
+  min-height:75px;
+  color:white;
+  text-shadow:0 0 25px #ffffff55;
+  overflow-wrap:anywhere;
+}
+#revealResult{
+  display:none;
+  font-size:clamp(25px,6vw,48px);
+  color:#e44a58;
+  font-weight:900;
+  letter-spacing:3px;
+  text-shadow:0 0 25px #b52b3b88;
+}
+#revealSub{
+  color:#c4cec6;
+  margin-top:15px;
+  line-height:1.6;
+}
 #gameOver{
   align-items:center;
   justify-content:center;
   background:#080b0cee;
-  z-index:10;
+  z-index:30;
 }
-
 .overBox{
-  text-align:center;
-  padding:40px;
-  background:#171e20;
-  border:1px solid #6c3439;
+  text-align:center;padding:40px;
+  background:#171e20;border:1px solid #6c3439;
   width:min(500px,90vw);
 }
-
 .overBox h1{font-size:42px;letter-spacing:4px}
 #overTitle{color:#d34a55}
 #overMessage{color:#c0c6ca;line-height:1.5;margin-bottom:25px}
 
 @media(max-width:650px){
   #help{display:none}
-  #taskPanel{width:190px;bottom:12px;left:8px}
-  #staminaWrap{width:140px;right:8px;bottom:12px}
+  #taskPanel{width:190px;bottom:10px;left:8px}
+  #staminaWrap{width:140px;right:8px;bottom:10px}
   .hudTop{top:8px;left:8px;right:8px}
   .hudPanel{min-width:0;padding:9px}
   #objective{max-width:160px}
@@ -328,22 +276,18 @@ input:focus{border-color:#bd3944}
       <h1>DEAD BY<br>STEINLIGHT</h1>
       <p>ONE ISLAND. ONE HUNTER. NO EASY WAY OUT.</p>
     </div>
-
     <div class="field">
       <label>PLAYER NAME</label>
       <input id="name" maxlength="18" placeholder="Enter your name">
     </div>
-
     <div class="actions">
       <button id="createBtn">CREATE ROOM</button>
       <button id="joinBtn">JOIN ROOM</button>
     </div>
-
     <div class="field">
       <label>ROOM CODE</label>
       <input id="roomCodeInput" maxlength="6" placeholder="ENTER CODE">
     </div>
-
     <div id="status">Connecting to game server...</div>
     <p class="small" style="text-align:center;margin-top:20px">
       MULTIPLAYER HORROR SURVIVAL
@@ -358,14 +302,11 @@ input:focus{border-color:#bd3944}
     <div class="roomCode" id="roomCode">------</div>
     <div class="small">PLAYERS</div>
     <ul id="players"></ul>
-
     <div class="lobbyBottom">
       <span class="small" id="lobbyCount">Waiting for players...</span>
       <button id="startBtn">START GAME</button>
     </div>
-
-    <p class="small">At least 2 players are required. Maximum 5.</p>
-
+    <p class="small">At least 2 players. Maximum 5.</p>
     <button id="leaveBtn" style="width:100%;background:#343b42;border-color:#59616b;margin-top:12px">
       LEAVE ROOM
     </button>
@@ -374,17 +315,15 @@ input:focus{border-color:#bd3944}
 
 <section id="game" class="screen">
   <canvas id="world"></canvas>
-
   <div id="hud">
     <div class="hudTop">
       <div class="hudPanel">
         <div class="hudTitle">YOUR ROLE</div>
         <div id="roleText">ESCAPEE</div>
       </div>
-
       <div class="hudPanel">
         <div class="hudTitle">OBJECTIVE</div>
-        <div id="objective">Complete the repairs and escape by boat.</div>
+        <div id="objective">Complete repairs and escape by boat.</div>
       </div>
     </div>
 
@@ -395,9 +334,10 @@ input:focus{border-color:#bd3944}
       CTRL: Crouch<br>
       E: Interact / Hide<br>
       <span id="hunterHelp">
-        Q: Sprint ability<br>
+        Q: Sprint<br>
         R: Tracking pulse<br>
-        F: Disrupt task
+        F: Disrupt repair<br>
+        E: Search locker
       </span>
     </div>
 
@@ -410,8 +350,16 @@ input:focus{border-color:#bd3944}
       <div class="hudTitle">STAMINA</div>
       <div id="stamina"><span></span></div>
     </div>
-
     <div id="notice"></div>
+  </div>
+</section>
+
+<section id="roleReveal">
+  <div class="revealBox">
+    <div class="revealEyebrow">THE HUNTER HAS BEEN CHOSEN</div>
+    <div id="spinnerName">LOADING...</div>
+    <div id="revealResult">EPSTEIN</div>
+    <div id="revealSub">The island is waiting.</div>
   </div>
 </section>
 
@@ -433,48 +381,41 @@ const socket = io({
 });
 
 const $ = id => document.getElementById(id);
-
-const screens = ["menu", "lobby", "game", "gameOver"];
+const screens = ["menu","lobby","game","gameOver"];
 
 function showScreen(id) {
-  screens.forEach(s => {
-    $(s).classList.toggle("active", s === id);
-  });
+  screens.forEach(s => $(s).classList.toggle("active", s === id));
 }
 
+let myId = null;
 let myRole = null;
 let room = null;
 let isHost = false;
 let gameState = null;
-let mapInfo = { width: 2800, height: 2200 };
+let mapInfo = {width:2800,height:2200};
 let obstacles = [];
 let hidingSpots = [];
 let keys = {};
-let camera = { x: 0, y: 0 };
+let camera = {x:0,y:0};
 let noticeTimer = null;
-let animationRunning = false;
+let revealTimer = null;
+let revealDone = false;
 
 const canvas = $("world");
-const ctx = canvas.getContext("2d", {
-  alpha: false
-});
+const ctx = canvas.getContext("2d");
 
-let sceneCanvas = null;
-let sceneCtx = null;
+let sceneCanvas = document.createElement("canvas");
+let sceneCtx = sceneCanvas.getContext("2d");
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-
   canvas.width = Math.floor(innerWidth * dpr);
   canvas.height = Math.floor(innerHeight * dpr);
-
   canvas.style.width = innerWidth + "px";
   canvas.style.height = innerHeight + "px";
-
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
 }
-
-window.addEventListener("resize", resize);
+window.addEventListener("resize",resize);
 resize();
 
 function status(message) {
@@ -483,23 +424,21 @@ function status(message) {
 
 function getName() {
   const name = $("name").value.trim();
-
   if (!name) {
     status("Enter a player name first.");
     $("name").focus();
     return null;
   }
-
-  return name.slice(0, 18);
+  return name.slice(0,18);
 }
 
 function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+  return String(value).replace(/[&<>"']/g,c=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   }[c]));
 }
 
@@ -513,13 +452,13 @@ function createRoom() {
   }
 
   status("Creating room...");
-
-  socket.emit("createRoom", { name }, result => {
+  socket.emit("createRoom",{name},result=>{
     if (!result || !result.ok) {
       status(result?.error || "Could not create room.");
       return;
     }
 
+    myId = socket.id;
     room = result.code;
     isHost = true;
     $("roomCode").textContent = room;
@@ -532,20 +471,19 @@ function joinRoom() {
   if (!name) return;
 
   const code = $("roomCodeInput").value.trim().toUpperCase();
-
   if (!code) {
     status("Enter a room code.");
     return;
   }
 
   status("Joining room...");
-
-  socket.emit("joinRoom", { name, code }, result => {
+  socket.emit("joinRoom",{name,code},result=>{
     if (!result || !result.ok) {
       status(result?.error || "Could not join room.");
       return;
     }
 
+    myId = socket.id;
     room = result.code;
     isHost = false;
     $("roomCode").textContent = room;
@@ -556,43 +494,45 @@ function joinRoom() {
 $("createBtn").onclick = createRoom;
 $("joinBtn").onclick = joinRoom;
 
-$("roomCodeInput").addEventListener("keydown", e => {
-  if (e.key === "Enter") joinRoom();
-});
+$("startBtn").onclick = () => {
+  socket.emit("startGame",result=>{
+    if (!result?.ok) {
+      status(result?.error || "Could not start.");
+    }
+  });
+};
 
-$("name").addEventListener("keydown", e => {
-  if (e.key === "Enter") createRoom();
-});
-
-socket.on("connect", () => {
-  status("Connected. Create a room or join one.");
-});
-
-socket.on("disconnect", () => {
-  status("Disconnected from server. Reconnect and rejoin.");
-  gameState = null;
+$("leaveBtn").onclick = () => {
+  socket.emit("leaveRoom");
   room = null;
-  keys = {};
   showScreen("menu");
+};
+
+$("backBtn").onclick = () => {
+  location.reload();
+};
+
+socket.on("connect",()=>{
+  myId = socket.id;
+  status("Connected to game server.");
 });
 
-socket.on("connect_error", () => {
-  status("Could not connect to the server.");
+socket.on("disconnect",()=>{
+  status("Connection lost. Reconnecting...");
 });
 
-socket.on("lobby", data => {
+socket.on("lobby",data=>{
   room = data.code;
   isHost = data.host === socket.id;
 
   $("roomCode").textContent = data.code;
+  $("players").innerHTML = "";
 
-  $("players").innerHTML = data.players.map(p =>
-    `<li>${escapeHTML(p.name)} ${
-      p.id === data.host
-        ? "<span style='color:#e6bd78'> • HOST</span>"
-        : ""
-    }</li>`
-  ).join("");
+  data.players.forEach(p=>{
+    const li = document.createElement("li");
+    li.textContent = p.name + (p.id === data.host ? "  • HOST" : "");
+    $("players").appendChild(li);
+  });
 
   $("lobbyCount").textContent =
     `${data.players.length}/5 players`;
@@ -602,694 +542,555 @@ socket.on("lobby", data => {
 
   $("startBtn").textContent =
     isHost ? "START GAME" : "WAITING FOR HOST";
-
-  if (!gameState) showScreen("lobby");
 });
 
-$("startBtn").onclick = () => {
-  socket.emit("startGame", result => {
-    if (!result?.ok) {
-      showNotice(result?.error || "Could not start game.");
-    }
-  });
-};
-
-$("leaveBtn").onclick = () => {
-  socket.emit("leaveRoom");
-
-  room = null;
-  gameState = null;
-  keys = {};
-
-  showScreen("menu");
-};
-
-socket.on("gameStarted", data => {
+socket.on("gameStarted",data=>{
   mapInfo = data.map;
-  obstacles = data.obstacles || [];
-  hidingSpots = data.hidingSpots || [];
+  obstacles = data.obstacles;
+  hidingSpots = data.hidingSpots;
   gameState = data.game;
 
-  const me = gameState.players.find(p => p.id === socket.id);
+  myId = socket.id;
 
-  myRole = me?.role || "escapee";
+  const me = data.playerNames.find(p=>p.id===myId);
+  const hunterId = data.hunterId;
 
-  $("roleText").textContent = myRole.toUpperCase();
-
-  $("roleText").style.color =
-    myRole === "hunter" ? "#ed626c" : "#b7d6a7";
-
-  $("hunterHelp").style.display =
-    myRole === "hunter" ? "inline" : "none";
-
-  $("objective").textContent =
-    myRole === "hunter"
-      ? "Find and catch every escapee."
-      : "Repair the boat, collect fuel and escape.";
-
-  buildStaticScene();
-  updateHUD();
+  myRole = myId === hunterId ? "hunter" : "escapee";
 
   showScreen("game");
-
-  showNotice(
-    myRole === "hunter"
-      ? "You are the Hunter."
-      : "Repair the boat and escape!"
-  );
-
-  startDrawing();
+  buildScene();
+  updateTasks();
+  startRoleReveal(data.playerNames,hunterId);
 });
 
-socket.on("state", data => {
-  if (!gameState) return;
-
-  gameState = data;
-  updateHUD();
+socket.on("state",state=>{
+  gameState = state;
+  updateTasks();
 });
 
-socket.on("notice", message => {
+socket.on("notice",message=>{
   showNotice(message);
 });
 
-socket.on("gameOver", data => {
-  $("overTitle").textContent =
-    data.winner === "escapees"
-      ? "ESCAPEES WIN"
-      : "HUNTER WINS";
+socket.on("gameOver",data=>{
+  clearInterval(revealTimer);
+  $("roleReveal").classList.remove("active");
 
-  $("overTitle").style.color =
-    data.winner === "escapees"
-      ? "#b6d69b"
-      : "#dc5962";
+  $("overTitle").textContent =
+    data.winner === "hunter" ? "EPSTEIN WINS" : "ESCAPE";
 
   $("overMessage").textContent = data.message;
-
-  keys = {};
   showScreen("gameOver");
 });
 
-$("backBtn").onclick = () => {
-  room = null;
-  gameState = null;
-  keys = {};
-  showScreen("menu");
-};
+function startRoleReveal(players,hunterId) {
+  clearInterval(revealTimer);
+  revealDone = false;
+
+  $("roleReveal").classList.add("active");
+  $("spinnerName").style.display = "block";
+  $("revealResult").style.display = "none";
+  $("revealSub").textContent = "Choosing the Hunter...";
+
+  let count = 0;
+  const total = 28;
+  let delay = 65;
+
+  function spin() {
+    const randomPlayer = players[
+      Math.floor(Math.random()*players.length)
+    ];
+
+    $("spinnerName").textContent =
+      randomPlayer.name.toUpperCase();
+
+    count++;
+
+    if (count >= total) {
+      const hunter = players.find(p=>p.id===hunterId);
+
+      $("spinnerName").textContent =
+        hunter ? hunter.name.toUpperCase() : "UNKNOWN";
+
+      $("revealResult").style.display = "block";
+      $("revealResult").textContent =
+        hunter ? hunter.name.toUpperCase()+" IS EPSTEIN" : "EPSTEIN";
+
+      $("revealSub").textContent =
+        hunterId === myId
+          ? "YOU ARE THE HUNTER. FIND EVERYONE."
+          : "HIDE, COMPLETE THE REPAIRS AND ESCAPE.";
+
+      setTimeout(()=>{
+        $("roleReveal").classList.remove("active");
+        revealDone = true;
+      },3500);
+
+      return;
+    }
+
+    delay += count > 17 ? 25 : 0;
+    revealTimer = setTimeout(spin,delay);
+  }
+
+  spin();
+}
 
 function showNotice(message) {
-  const el = $("notice");
-
-  el.textContent = message;
-  el.classList.add("show");
+  $("notice").textContent = message;
+  $("notice").classList.add("show");
 
   clearTimeout(noticeTimer);
-
-  noticeTimer = setTimeout(() => {
-    el.classList.remove("show");
-  }, 2400);
+  noticeTimer = setTimeout(()=>{
+    $("notice").classList.remove("show");
+  },2300);
 }
 
-function updateHUD() {
-  if (!gameState) return;
-
-  const me = gameState.players.find(p => p.id === socket.id);
-
-  if (me) {
-    $("stamina").firstElementChild.style.width =
-      me.stamina + "%";
-
-    if (!me.alive && !me.escaped) {
-      $("objective").textContent =
-        "You have been caught. Watch the remaining players.";
-    }
-  }
-
-  if (myRole === "escapee") {
-    $("tasks").innerHTML =
-      gameState.tasks.map(t => `
-        <div class="task">
-          ${escapeHTML(t.name)}
-          <span style="float:right">${Math.floor(t.progress)}%</span>
-          <div class="bar">
-            <span style="width:${t.progress}%"></span>
-          </div>
-        </div>
-      `).join("") +
-      `<div class="task">
-        Fuel cans
-        <span style="float:right">
-          ${gameState.fuel.filter(f => f.collected).length}/2
-        </span>
-      </div>`;
-  } else {
-    const remaining = gameState.players.filter(p =>
-      p.role === "escapee" && p.alive && !p.escaped
-    ).length;
-
-    $("tasks").innerHTML = `
-      <div class="task">
-        Escapees remaining:
-        <span style="float:right">${remaining}</span>
-      </div>
-      <div class="task">Track and catch the escapees.</div>
-    `;
-  }
-}
-
-function keyName(e) {
-  return e.key.toLowerCase();
-}
-
-window.addEventListener("keydown", e => {
-  const k = keyName(e);
-
-  if (
-    ["arrowup", "arrowdown", "arrowleft", "arrowright", " "]
-      .includes(k)
-  ) {
-    e.preventDefault();
-  }
-
-  keys[k] = true;
-});
-
-window.addEventListener("keyup", e => {
-  keys[keyName(e)] = false;
-});
-
-window.addEventListener("blur", () => {
-  keys = {};
-});
-
-function makeInput() {
-  const input = {
-    up: !!(keys.w || keys.arrowup),
-    down: !!(keys.s || keys.arrowdown),
-    left: !!(keys.a || keys.arrowleft),
-    right: !!(keys.d || keys.arrowright),
-    sprint: !!keys.shift,
-    crouch: !!keys.control,
-    interact: !!keys.e,
-    hide: !!keys.e,
-    pulse: !!keys.r,
-    disrupt: !!keys.f
-  };
-
-  if (myRole === "hunter") {
-    input.sprint = !!(keys.shift || keys.q);
-  }
-
-  return input;
-}
-
-// Send controls at 30 updates per second.
-setInterval(() => {
-  if (
-    !gameState ||
-    !$("game").classList.contains("active") ||
-    !socket.connected
-  ) return;
-
-  socket.emit("input", makeInput());
-}, 1000 / 30);
-
-// --------------------------------------------------
-// STATIC SCENE
-// --------------------------------------------------
-
-function buildStaticScene() {
-  sceneCanvas = document.createElement("canvas");
-
+function buildScene() {
   sceneCanvas.width = mapInfo.width;
   sceneCanvas.height = mapInfo.height;
 
-  sceneCtx = sceneCanvas.getContext("2d");
+  const c = sceneCtx;
 
-  drawIsland(sceneCtx);
-  drawObstacles(sceneCtx);
-  drawHidingSpots(sceneCtx);
-  drawBoat(sceneCtx);
-}
+  // Base island grass.
+  c.fillStyle = "#36543b";
+  c.fillRect(0,0,mapInfo.width,mapInfo.height);
 
-function drawIsland(g) {
-  g.fillStyle = "#254532";
-  g.fillRect(0, 0, mapInfo.width, mapInfo.height);
+  // Grass colour variation.
+  for (let i=0;i<5000;i++) {
+    const x = Math.random()*mapInfo.width;
+    const y = Math.random()*mapInfo.height;
+    c.fillStyle = Math.random()>.5
+      ? "rgba(160,190,110,.045)"
+      : "rgba(0,0,0,.045)";
+    c.fillRect(x,y,2+Math.random()*5,2+Math.random()*5);
+  }
 
-  // Subtle grass texture, created only once.
-  g.strokeStyle = "#365a3f";
-  g.lineWidth = 1;
+  // Shoreline and water.
+  c.fillStyle = "#172f35";
+  c.fillRect(0,0,mapInfo.width,65);
+  c.fillRect(0,mapInfo.height-65,mapInfo.width,65);
+  c.fillRect(0,0,65,mapInfo.height);
+  c.fillRect(mapInfo.width-65,0,65,mapInfo.height);
 
-  for (let x = 0; x < mapInfo.width; x += 75) {
-    for (let y = 0; y < mapInfo.height; y += 75) {
-      const n = Math.sin(x * 12.3 + y * 3.7);
+  c.strokeStyle="#456c70";
+  c.lineWidth=8;
+  c.strokeRect(70,70,mapInfo.width-140,mapInfo.height-140);
 
-      g.globalAlpha = 0.15;
-      g.beginPath();
-      g.moveTo(x + n * 5, y);
-      g.lineTo(x + 8 + n * 5, y - 9);
-      g.stroke();
+  // Dirt paths.
+  c.lineCap="round";
+  c.strokeStyle="#827858";
+  c.lineWidth=75;
+  c.beginPath();
+  c.moveTo(300,850);
+  c.lineTo(900,850);
+  c.lineTo(1300,1100);
+  c.lineTo(2100,1100);
+  c.lineTo(2350,1800);
+  c.stroke();
+
+  c.strokeStyle="#a0916c";
+  c.lineWidth=4;
+  c.stroke();
+
+  // Buildings.
+  obstacles.forEach((o,i)=>{
+    c.fillStyle="#1c2923";
+    c.fillRect(o.x-10,o.y-10,o.w+20,o.h+20);
+
+    c.fillStyle=i%2===0?"#655849":"#59605a";
+    c.fillRect(o.x,o.y,o.w,o.h);
+
+    c.fillStyle="#293a32";
+    c.fillRect(o.x+12,o.y+12,o.w-24,o.h-24);
+
+    // Roof lines.
+    c.strokeStyle="#9b8970";
+    c.lineWidth=5;
+    c.strokeRect(o.x+8,o.y+8,o.w-16,o.h-16);
+
+    c.fillStyle="#b7a27c";
+    c.font="bold 18px Arial";
+    c.fillText(o.name,o.x+20,o.y+35);
+
+    // Windows.
+    for(let wx=o.x+45;wx<o.x+o.w-30;wx+=100){
+      c.fillStyle="#a8b9a0";
+      c.fillRect(wx,o.y+65,30,20);
+      c.fillRect(wx,o.y+o.h-80,30,20);
     }
+  });
+
+  // Dock.
+  c.fillStyle="#795d3e";
+  c.fillRect(2250,1770,350,35);
+  c.fillRect(2300,1770,35,180);
+  c.fillRect(2520,1770,35,180);
+
+  // Water around dock.
+  c.fillStyle="#234c56";
+  c.fillRect(2180,1950,520,180);
+  c.strokeStyle="#6e9996";
+  c.lineWidth=3;
+  for(let i=0;i<8;i++){
+    c.beginPath();
+    c.moveTo(2200,1970+i*20);
+    c.lineTo(2670,1970+i*20);
+    c.stroke();
   }
 
-  g.globalAlpha = 1;
+  // Trees.
+  const treePositions=[];
+  for(let i=0;i<160;i++){
+    const x=100+Math.random()*(mapInfo.width-200);
+    const y=100+Math.random()*(mapInfo.height-200);
 
-  // Water.
-  g.fillStyle = "#285768";
-  g.fillRect(0, 0, mapInfo.width, mapInfo.height);
+    if(obstacles.some(o=>
+      x>o.x-60 && x<o.x+o.w+60 &&
+      y>o.y-60 && y<o.y+o.h+60
+    )) continue;
 
-  // Island shape.
-  g.fillStyle = "#254532";
-  g.beginPath();
+    if(x>2150&&y>1750) continue;
 
-  g.moveTo(150, 130);
-  g.lineTo(850, 60);
-  g.lineTo(1650, 110);
-  g.lineTo(2540, 200);
-  g.lineTo(2700, 700);
-  g.lineTo(2630, 1500);
-  g.lineTo(2500, 2050);
-  g.lineTo(1800, 2140);
-  g.lineTo(900, 2100);
-  g.lineTo(200, 1900);
-  g.lineTo(80, 1200);
-
-  g.closePath();
-  g.fill();
-
-  g.strokeStyle = "#819b8d";
-  g.lineWidth = 15;
-  g.stroke();
-
-  // Main walking paths.
-  g.strokeStyle = "#82795b";
-  g.lineWidth = 65;
-  g.lineCap = "round";
-
-  g.beginPath();
-  g.moveTo(350, 350);
-  g.lineTo(1150, 850);
-  g.lineTo(1900, 1000);
-  g.lineTo(2350, 1800);
-  g.stroke();
-
-  g.strokeStyle = "#a69b76";
-  g.lineWidth = 3;
-  g.stroke();
-
-  g.lineCap = "butt";
-
-  // Forest.
-  for (let i = 0; i < 105; i++) {
-    const x = 180 + ((i * 193) % 2420);
-    const y = 170 + ((i * 317) % 1830);
-
-    if (
-      obstacles.some(o =>
-        x > o.x - 60 &&
-        x < o.x + o.w + 60 &&
-        y > o.y - 60 &&
-        y < o.y + o.h + 60
-      )
-    ) continue;
-
-    drawTree(g, x, y, 0.7 + ((i * 17) % 6) / 10);
+    treePositions.push({x,y});
   }
 
-  g.strokeStyle = "#18221e";
-  g.lineWidth = 8;
-  g.strokeRect(0, 0, mapInfo.width, mapInfo.height);
-}
+  treePositions.forEach(t=>drawTree(c,t.x,t.y));
 
-function drawTree(g, x, y, s = 1) {
-  g.fillStyle = "#15231a";
-
-  g.beginPath();
-  g.ellipse(x + 7, y + 13, 24 * s, 15 * s, 0, 0, Math.PI * 2);
-  g.fill();
-
-  g.fillStyle = "#594431";
-  g.fillRect(x - 5 * s, y - 2 * s, 10 * s, 25 * s);
-
-  g.fillStyle = "#25432d";
-  g.beginPath();
-  g.arc(x, y - 12 * s, 25 * s, 0, Math.PI * 2);
-  g.fill();
-
-  g.fillStyle = "#365d3b";
-  g.beginPath();
-  g.arc(x - 9 * s, y - 20 * s, 14 * s, 0, Math.PI * 2);
-  g.fill();
-}
-
-function drawObstacles(g) {
-  for (const o of obstacles) {
-    g.fillStyle = "#17201e";
-    g.fillRect(o.x + 8, o.y + 12, o.w, o.h);
-
-    g.fillStyle = "#62645a";
-    g.fillRect(o.x, o.y, o.w, o.h);
-
-    g.fillStyle = "#828273";
-    g.fillRect(o.x + 8, o.y + 8, o.w - 16, 12);
-
-    g.fillStyle = "#343c36";
-    g.fillRect(o.x + 20, o.y + 28, o.w - 40, o.h - 45);
-
-    g.strokeStyle = "#a5a28e";
-    g.lineWidth = 3;
-    g.strokeRect(o.x, o.y, o.w, o.h);
+  // Rocks and scenery.
+  for(let i=0;i<110;i++){
+    const x=Math.random()*mapInfo.width;
+    const y=Math.random()*mapInfo.height;
+    c.fillStyle="#626b5e";
+    c.beginPath();
+    c.ellipse(x,y,5+Math.random()*9,4+Math.random()*7,0,0,Math.PI*2);
+    c.fill();
   }
+
+  // Objective markers.
+  const markers=[
+    {x:900,y:600,label:"BASEMENT"},
+    {x:2250,y:1850,label:"BOAT"}
+  ];
+
+  markers.forEach(m=>{
+    c.fillStyle="#d6b56b";
+    c.beginPath();
+    c.arc(m.x,m.y,15,0,Math.PI*2);
+    c.fill();
+
+    c.fillStyle="#101510";
+    c.font="bold 12px Arial";
+    c.fillText(m.label,m.x-35,m.y-25);
+  });
 }
 
-function drawHidingSpots(g) {
-  for (const s of hidingSpots) {
-    g.fillStyle =
-      s.type === "Bush"
-        ? "#32613b"
-        : "#625344";
+function drawTree(c,x,y) {
+  c.fillStyle="#202b20";
+  c.beginPath();
+  c.ellipse(x+7,y+13,23,13,0,0,Math.PI*2);
+  c.fill();
 
-    g.beginPath();
-    g.arc(s.x, s.y, 22, 0, Math.PI * 2);
-    g.fill();
+  c.fillStyle="#604c34";
+  c.fillRect(x-5,y-4,10,28);
 
-    g.strokeStyle = "#aaa582";
-    g.lineWidth = 2;
-    g.stroke();
-  }
+  c.fillStyle="#193b29";
+  c.beginPath();
+  c.arc(x,y-7,24,0,Math.PI*2);
+  c.fill();
+
+  c.fillStyle="#31583a";
+  c.beginPath();
+  c.arc(x-9,y-15,14,0,Math.PI*2);
+  c.fill();
+
+  c.fillStyle="#527347";
+  c.beginPath();
+  c.arc(x+9,y-12,10,0,Math.PI*2);
+  c.fill();
 }
 
-function drawBoat(g) {
-  g.save();
+function updateTasks() {
+  if (!gameState) return;
 
-  g.translate(2350, 1850);
-  g.rotate(-0.12);
+  const tasks = gameState.tasks || [];
+  const fuel = gameState.fuel || [];
 
-  g.fillStyle = "#17201f";
-  g.beginPath();
+  $("tasks").innerHTML = "";
 
-  g.moveTo(-95, -35);
-  g.lineTo(85, -35);
-  g.lineTo(115, 0);
-  g.lineTo(80, 45);
-  g.lineTo(-80, 45);
-  g.lineTo(-110, 0);
+  tasks.forEach(task=>{
+    const div=document.createElement("div");
+    div.className="task";
 
-  g.closePath();
-  g.fill();
+    const percent=Math.floor(task.progress);
 
-  g.fillStyle = "#846344";
-  g.fillRect(-65, -24, 130, 48);
+    div.innerHTML=`
+      <div>${escapeHTML(task.name)} <span style="float:right">${percent}%</span></div>
+      <div class="bar"><span style="width:${percent}%"></span></div>
+    `;
 
-  g.fillStyle = "#c5c0a2";
-  g.fillRect(-12, -17, 24, 34);
+    $("tasks").appendChild(div);
+  });
 
-  g.restore();
+  const fuelCount=fuel.filter(f=>f.collected).length;
 
-  g.fillStyle = "#e0ddc6";
-  g.font = "bold 13px Arial";
-  g.textAlign = "center";
-  g.fillText("ESCAPE BOAT", 2350, 1780);
-}
+  const fuelDiv=document.createElement("div");
+  fuelDiv.className="task";
+  fuelDiv.textContent=`Fuel cans: ${fuelCount}/2`;
+  $("tasks").appendChild(fuelDiv);
 
-// --------------------------------------------------
-// DYNAMIC WORLD
-// --------------------------------------------------
+  $("roleText").textContent =
+    myRole==="hunter" ? "EPSTEIN" : "ESCAPEE";
 
-function startDrawing() {
-  if (animationRunning) return;
+  $("roleText").style.color =
+    myRole==="hunter" ? "#e34a58" : "#e6e9e1";
 
-  animationRunning = true;
-  requestAnimationFrame(draw);
+  $("objective").textContent =
+    myRole==="hunter"
+      ? "Find the escapees. Search lockers and stop their escape."
+      : "Repair the boat, collect fuel and escape the island.";
 }
 
 function draw() {
-  if (!$("game").classList.contains("active")) {
-    animationRunning = false;
-    return;
-  }
-
-  renderWorld();
   requestAnimationFrame(draw);
-}
 
-function renderWorld() {
-  const w = innerWidth;
-  const h = innerHeight;
+  if (!$("game").classList.contains("active")) return;
+  if (!gameState || !gameState.players) return;
 
-  const me = gameState?.players.find(p => p.id === socket.id);
+  const me=gameState.players.find(p=>p.id===myId);
+  if(!me) return;
 
-  if (!me || !sceneCanvas) return;
+  const dpr=Math.min(window.devicePixelRatio||1,1.5);
+  const w=innerWidth;
+  const h=innerHeight;
 
-  const viewW = Math.min(w, mapInfo.width);
-  const viewH = Math.min(h, mapInfo.height);
+  camera.x=me.x-w/2;
+  camera.y=me.y-h/2;
 
-  camera.x = Math.max(
-    0,
-    Math.min(mapInfo.width - viewW, me.x - viewW / 2)
-  );
+  camera.x=Math.max(0,Math.min(mapInfo.width-w,camera.x));
+  camera.y=Math.max(0,Math.min(mapInfo.height-h,camera.y));
 
-  camera.y = Math.max(
-    0,
-    Math.min(mapInfo.height - viewH, me.y - viewH / 2)
-  );
-
-  ctx.clearRect(0, 0, w, h);
-
-  // Draw cached background.
+  ctx.clearRect(0,0,w,h);
   ctx.drawImage(
     sceneCanvas,
-    camera.x,
-    camera.y,
-    viewW,
-    viewH,
-    0,
-    0,
-    viewW,
-    viewH
+    camera.x,camera.y,w,h,
+    0,0,w,h
   );
 
   ctx.save();
-  ctx.translate(-camera.x, -camera.y);
+  ctx.translate(-camera.x,-camera.y);
 
-  drawStations(ctx);
-  drawPlayers(ctx);
+  // Hiding spots.
+  hidingSpots.forEach(s=>{
+    ctx.fillStyle=
+      s.type==="Locker" ? "#53636a" :
+      s.type==="Wardrobe" ? "#71543d" :
+      s.type==="Bed" ? "#9c8b75" : "#24482c";
 
-  ctx.restore();
-
-  // Vision effect only affects the visible screen.
-  drawVision(me, w, h);
-
-  drawMinimap(me);
-}
-
-function drawStations(g) {
-  if (!gameState) return;
-
-  for (const t of gameState.tasks) {
-    g.fillStyle = "#303a37";
-    g.fillRect(t.x - 28, t.y - 23, 56, 46);
-
-    g.strokeStyle = "#d0b77d";
-    g.lineWidth = 3;
-    g.strokeRect(t.x - 28, t.y - 23, 56, 46);
-
-    g.fillStyle = "#e2d4a8";
-    g.font = "bold 11px Arial";
-    g.textAlign = "center";
-    g.fillText(t.id.toUpperCase(), t.x, t.y + 4);
-
-    g.fillStyle = "#111714";
-    g.fillRect(t.x - 30, t.y - 35, 60, 6);
-
-    g.fillStyle = "#b4d594";
-    g.fillRect(t.x - 30, t.y - 35, 60 * t.progress / 100, 6);
-  }
-
-  for (const f of gameState.fuel) {
-    if (f.collected) continue;
-
-    g.fillStyle = "#e0bd4e";
-    g.fillRect(f.x - 9, f.y - 15, 18, 30);
-
-    g.fillStyle = "#59451f";
-    g.fillRect(f.x - 5, f.y - 20, 10, 6);
-
-    g.fillStyle = "#fff1a7";
-    g.fillRect(f.x - 5, f.y - 8, 10, 5);
-  }
-}
-
-function drawPlayers(g) {
-  if (!gameState) return;
-
-  for (const p of gameState.players) {
-    if (!p.alive || p.escaped) continue;
-    if (p.hidden && p.id !== socket.id) continue;
-
-    const hunter = p.role === "hunter";
-
-    g.save();
-    g.translate(p.x, p.y);
-
-    g.fillStyle = "#0009";
-    g.beginPath();
-    g.ellipse(0, 15, 17, 8, 0, 0, Math.PI * 2);
-    g.fill();
-
-    g.fillStyle = hunter ? "#8d2935" : "#c0c4b1";
-    g.beginPath();
-    g.arc(0, 0, hunter ? 15 : 12, 0, Math.PI * 2);
-    g.fill();
-
-    g.fillStyle = hunter ? "#edaaaa" : "#394e46";
-    g.beginPath();
-    g.arc(0, -5, 7, 0, Math.PI * 2);
-    g.fill();
-
-    g.strokeStyle = "#111";
-    g.lineWidth = 2;
-    g.stroke();
-
-    if (p.id === socket.id) {
-      g.strokeStyle = "#f4e5a4";
-      g.lineWidth = 2;
-
-      g.beginPath();
-      g.arc(0, 0, 21, 0, Math.PI * 2);
-      g.stroke();
+    if(s.type==="Bush"){
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,24,0,Math.PI*2);
+      ctx.fill();
+    }else{
+      ctx.fillRect(s.x-15,s.y-20,30,40);
+      ctx.strokeStyle="#c4b99c";
+      ctx.lineWidth=2;
+      ctx.strokeRect(s.x-15,s.y-20,30,40);
     }
 
-    g.restore();
+    if(myRole==="hunter"&&s.type==="Locker"){
+      ctx.fillStyle="#fff";
+      ctx.font="11px Arial";
+      ctx.fillText("E: SEARCH",s.x-28,s.y-30);
+    }
+  });
 
-    g.font = "bold 12px Arial";
-    g.textAlign = "center";
-    g.fillStyle = "#fff";
-    g.shadowColor = "#000";
-    g.shadowBlur = 4;
-    g.fillText(p.name, p.x, p.y - 25);
-    g.shadowBlur = 0;
-  }
-}
+  // Task stations.
+  gameState.tasks.forEach(t=>{
+    ctx.fillStyle="#d6b45f";
+    ctx.beginPath();
+    ctx.arc(t.x,t.y,18,0,Math.PI*2);
+    ctx.fill();
 
-// Slightly brighter visibility while keeping the horror atmosphere.
-function drawVision(me, w, h) {
-  if (!me) return;
+    ctx.fillStyle="#152016";
+    ctx.fillRect(t.x-10,t.y-10,20,20);
 
-  const radius = me.role === "hunter" ? 270 : 390;
+    ctx.fillStyle="#fff";
+    ctx.font="12px Arial";
+    ctx.fillText(t.name,t.x-35,t.y-27);
 
-  ctx.save();
+    ctx.fillStyle="#1d2921";
+    ctx.fillRect(t.x-25,t.y+23,50,5);
 
-  // Limit darkness to the visible screen.
-  ctx.fillStyle = "#0007";
-  ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle="#d6b45f";
+    ctx.fillRect(t.x-25,t.y+23,50*(t.progress/100),5);
+  });
 
-  const screenX = me.x - camera.x;
-  const screenY = me.y - camera.y;
+  // Fuel.
+  gameState.fuel.forEach(f=>{
+    if(f.collected) return;
 
-  // Remove darkness around the player.
-  ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle="#d9b34e";
+    ctx.fillRect(f.x-9,f.y-13,18,25);
+    ctx.fillStyle="#24221a";
+    ctx.fillRect(f.x-4,f.y-17,8,5);
+  });
 
-  ctx.beginPath();
-  ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
-  ctx.fill();
+  // Players.
+  gameState.players.forEach(p=>{
+    if(!p.alive||p.escaped||p.hidden) return;
+    if(p.x===null||p.y===null) return;
 
-  ctx.globalCompositeOperation = "source-over";
+    const isMe=p.id===myId;
+    const isHunter=p.role==="hunter";
 
-  // Soft edge around the visible area.
-  const grad = ctx.createRadialGradient(
-    screenX,
-    screenY,
-    radius * 0.55,
-    screenX,
-    screenY,
-    radius
+    ctx.fillStyle="#0008";
+    ctx.beginPath();
+    ctx.ellipse(p.x,p.y+13,16,7,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle=isHunter?"#b52c3b":(isMe?"#e6dfc8":"#9eafa1");
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,13,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle=isMe?"#fff":"#1a201b";
+    ctx.lineWidth=3;
+    ctx.stroke();
+
+    ctx.fillStyle="#fff";
+    ctx.font="bold 12px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(
+      isHunter?"EPSTEIN":p.name,
+      p.x,p.y-22
+    );
+    ctx.textAlign="left";
+  });
+
+  // Darkness overlay and personal vision.
+  ctx.restore();
+
+  ctx.fillStyle="rgba(3,8,6,.48)";
+  ctx.fillRect(0,0,w,h);
+
+  const vision=myRole==="hunter"?230:360;
+  const gradient=ctx.createRadialGradient(
+    w/2,h/2,vision*.25,
+    w/2,h/2,vision
   );
 
-  grad.addColorStop(0, "#0000");
-  grad.addColorStop(1, "#0006");
+  gradient.addColorStop(0,"rgba(0,0,0,0)");
+  gradient.addColorStop(.65,"rgba(0,0,0,.08)");
+  gradient.addColorStop(1,"rgba(0,0,0,.88)");
 
-  ctx.fillStyle = grad;
+  ctx.fillStyle=gradient;
+  ctx.fillRect(0,0,w,h);
 
-  ctx.beginPath();
-  ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
-  ctx.fill();
+  // Minimap.
+  drawMinimap();
+}
 
-  if (me.pulse > 0) {
-    ctx.strokeStyle = "#b6d8ff";
-    ctx.lineWidth = 4;
-    ctx.globalAlpha = me.pulse / 90;
+function drawMinimap() {
+  const size=150;
+  const x=innerWidth-size-16;
+  const y=innerHeight-size-16;
 
+  ctx.save();
+  ctx.fillStyle="#07100de8";
+  ctx.fillRect(x,y,size,size);
+  ctx.strokeStyle="#a1b09e";
+  ctx.strokeRect(x,y,size,size);
+
+  const sx=size/mapInfo.width;
+  const sy=size/mapInfo.height;
+
+  obstacles.forEach(o=>{
+    ctx.fillStyle="#69766a";
+    ctx.fillRect(
+      x+o.x*sx,
+      y+o.y*sy,
+      o.w*sx,
+      o.h*sy
+    );
+  });
+
+  // Hidden players have null coordinates from the server.
+  gameState.players.forEach(p=>{
+    if(!p.alive||p.escaped||p.hidden) return;
+    if(p.x===null||p.y===null) return;
+
+    ctx.fillStyle=p.role==="hunter"?"#f04450":"#e6e5c7";
     ctx.beginPath();
     ctx.arc(
-      screenX,
-      screenY,
-      Math.max(0, (90 - me.pulse) * 7),
+      x+p.x*sx,
+      y+p.y*sy,
+      p.id===myId?4:3,
       0,
-      Math.PI * 2
+      Math.PI*2
     );
-
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
+    ctx.fill();
+  });
 
   ctx.restore();
 }
 
-function drawMinimap(me) {
-  const mw = 150;
-  const mh = 118;
-  const x = innerWidth - mw - 15;
-  const y = innerHeight - mh - 15;
+const inputState={};
 
-  ctx.fillStyle = "#101819ee";
-  ctx.fillRect(x, y, mw, mh);
+function sendInput() {
+  if(!gameState||!socket.connected) return;
 
-  ctx.strokeStyle = "#9aa69d";
-  ctx.strokeRect(x, y, mw, mh);
+  const input={
+    up:!!(keys.w||keys.ArrowUp),
+    down:!!(keys.s||keys.ArrowDown),
+    left:!!(keys.a||keys.ArrowLeft),
+    right:!!(keys.d||keys.ArrowRight),
+    sprint:!!keys.Shift,
+    crouch:!!keys.Control,
+    hide:myRole==="escapee"&&!!keys.e,
+    interact:myRole==="escapee"&&!!keys.e,
+    search:myRole==="hunter"&&!!keys.e,
+    pulse:myRole==="hunter"&&!!keys.r,
+    disrupt:myRole==="hunter"&&!!keys.f
+  };
 
-  const sx = mw / mapInfo.width;
-  const sy = mh / mapInfo.height;
-
-  ctx.fillStyle = "#35583d";
-  ctx.fillRect(x + 2, y + 2, mw - 4, mh - 4);
-
-  for (const o of obstacles) {
-    ctx.fillStyle = "#66675b";
-    ctx.fillRect(
-      x + o.x * sx,
-      y + o.y * sy,
-      o.w * sx,
-      o.h * sy
-    );
-  }
-
-  if (gameState) {
-    for (const p of gameState.players) {
-      if (!p.alive || p.escaped) continue;
-
-      ctx.fillStyle =
-        p.role === "hunter"
-          ? "#ed4e59"
-          : "#eee9d0";
-
-      ctx.beginPath();
-      ctx.arc(
-        x + p.x * sx,
-        y + p.y * sy,
-        3,
-        0,
-        Math.PI * 2
-      );
-
-      ctx.fill();
-    }
-  }
-
-  ctx.fillStyle = "#fff";
-  ctx.font = "9px Arial";
-  ctx.fillText("ISLAND", x + 6, y + 12);
+  socket.emit("input",input);
 }
 
+window.addEventListener("keydown",e=>{
+  const key=e.key.length===1?e.key.toLowerCase():e.key;
+
+  if([
+    "ArrowUp","ArrowDown","ArrowLeft","ArrowRight",
+    " ","Tab"
+  ].includes(e.key)){
+    e.preventDefault();
+  }
+
+  keys[key]=true;
+});
+
+window.addEventListener("keyup",e=>{
+  const key=e.key.length===1?e.key.toLowerCase():e.key;
+  keys[key]=false;
+});
+
+window.addEventListener("blur",()=>{
+  keys={};
+});
+
+setInterval(sendInput,1000/30);
+
+function gameLoop() {
+  requestAnimationFrame(gameLoop);
+  if(gameState) {
+    $("stamina").querySelector("span").style.width=
+      (gameState.players.find(p=>p.id===myId)?.stamina||0)+"%";
+  }
+}
+
+requestAnimationFrame(draw);
+requestAnimationFrame(gameLoop);
 </script>
 </body>
 </html>
