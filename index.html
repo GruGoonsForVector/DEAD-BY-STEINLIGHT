@@ -437,7 +437,9 @@ function buildStaticScene(){
 }
  
 function renderWorld(){
-  const w=innerWidth,h=innerHeight;
+  const w = innerWidth;
+  const h = innerHeight;
+
   ctx.clearRect(0,0,w,h);
 
   const me = gameState?.players.find(p=>p.id===socket.id);
@@ -449,15 +451,23 @@ function renderWorld(){
   ctx.save();
   ctx.translate(-camera.x,-camera.y);
 
-  drawIsland();
-  drawObstacles();
+  if(sceneCanvas){
+    const sourceW = Math.min(w,mapInfo.width-camera.x);
+    const sourceH = Math.min(h,mapInfo.height-camera.y);
+
+    ctx.drawImage(
+      sceneCanvas,
+      camera.x,camera.y,sourceW,sourceH,
+      camera.x,camera.y,sourceW,sourceH
+    );
+  }
+
   drawStations();
-  drawHidingSpots();
-  drawBoat();
   drawPlayers(me);
-  drawVision(me);
+  drawVision(me,w,h);
 
   ctx.restore();
+
   drawMinimap(me);
 }
 
