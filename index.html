@@ -177,7 +177,8 @@ let camera = {x:0,y:0};
 let animation = 0;
 
 const canvas = $("world");
-const ctx = canvas.getContext("2d");
+let ctx = canvas.getContext("2d");
+let sceneCanvas = null;
 
 function resize(){
   const dpr = Math.min(window.devicePixelRatio || 1,2);
