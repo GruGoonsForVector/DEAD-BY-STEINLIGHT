@@ -432,9 +432,25 @@ function refreshLobby(){
   "WAITING FOR PLAYERS":"START MATCH";
 }
 
+
 function sendLobby(){
- const data={type:"lobby",players:players.map(p=>({id:p.id,name:p.name}))};
- connections.forEach(c=>{if(c.open)c.send(data)});
+ const data={
+  type:"lobby",
+  players:players.map(p=>({
+   id:p.id,
+   name:p.name
+  }))
+ };
+
+ connections.forEach(c=>{
+  if(c.open){
+   try{
+    c.send(data);
+   }catch(err){
+    console.error("Lobby send failed:",err);
+   }
+  }
+ });
 }
 
 function copyCode(){
