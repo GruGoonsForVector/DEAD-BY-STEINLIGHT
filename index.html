@@ -690,22 +690,38 @@ function drawPlayers(me){
   }
 }
 
-function drawVision(me){
+function drawVision(me,w,h){
   if(!me)return;
-  const radius=me.role==="hunter"?210:340;
+
+  const radius = me.role==="hunter" ? 210 : 340;
+
+  ctx.save();
+
+  // Only shade the visible screen area
+  ctx.beginPath();
+  ctx.rect(camera.x,camera.y,w,h);
+  ctx.clip();
 
   ctx.fillStyle="#0009";
-  ctx.fillRect(0,0,mapInfo.width,mapInfo.height);
+  ctx.fillRect(camera.x,camera.y,w,h);
 
+  // Create the player's visible area
   ctx.globalCompositeOperation="destination-out";
+
   ctx.beginPath();
   ctx.arc(me.x,me.y,radius,0,Math.PI*2);
   ctx.fill();
+
   ctx.globalCompositeOperation="source-over";
 
-  const grad=ctx.createRadialGradient(me.x,me.y,radius*.55,me.x,me.y,radius);
+  const grad=ctx.createRadialGradient(
+    me.x,me.y,radius*.55,
+    me.x,me.y,radius
+  );
+
   grad.addColorStop(0,"#0000");
   grad.addColorStop(1,"#0005");
+
   ctx.fillStyle=grad;
   ctx.beginPath();
   ctx.arc(me.x,me.y,radius,0,Math.PI*2);
@@ -715,11 +731,20 @@ function drawVision(me){
     ctx.strokeStyle="#b6d8ff";
     ctx.lineWidth=4;
     ctx.globalAlpha=me.pulse/90;
+
     ctx.beginPath();
-    ctx.arc(me.x,me.y,Math.max(0,(90-me.pulse)*7),0,Math.PI*2);
+    ctx.arc(
+      me.x,
+      me.y,
+      Math.max(0,(90-me.pulse)*7),
+      0,
+      Math.PI*2
+    );
+
     ctx.stroke();
-    ctx.globalAlpha=1;
   }
+
+  ctx.restore();
 }
 
 function drawMinimap(me){
