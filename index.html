@@ -217,29 +217,22 @@ function show(id){$(id).classList.remove("hidden")}
 function hide(id){$(id).classList.add("hidden")}
 
 
+
 function createRoom(){
  const name=getName();
  if(!name)return;
 
  if(!window.Peer){
-  setStatus("ERROR: PeerJS library did not load!");
+  setStatus("PeerJS failed to load.");
   return;
  }
 
  myName=name;
- setStatus("Connecting to PeerJS server...");
+ setStatus("Creating room...");
 
- peer=new Peer(undefined,{
-  debug:3,
-  host:"0.peerjs.com",
-  port:443,
-  path:"/",
-  secure:true
- });
+ peer=new Peer();
 
  peer.on("open",id=>{
-  console.log("PEER CONNECTED:",id);
-
   myId=id;
   myPlayerId=id;
   isHost=true;
@@ -250,22 +243,37 @@ function createRoom(){
   show("lobby");
   hide("menu");
   refreshLobby();
-  setStatus("Room created successfully!");
+ });
+
+ peer.on("connection",conn=>{
+  connections.push(conn);
+
+  conn.on("data",data=>{
+   handleHostData(conn,data);
+  });
+
+  conn.on("open",()=>{
+   conn.send({type:"welcome"});
+  });
+
+  conn.on("close",()=>{
+   connections=connections.filter(c=>c!==conn);
+   players=players.filter(p=>p.id!==conn.peer);
+   refreshLobby();
+   sendLobby();
+  });
+
+  conn.on("error",e=>{
+   console.error("Connection error:",e);
+  });
  });
 
  peer.on("error",e=>{
-  console.error("PEER ERROR:",e);
-  setStatus("PEER ERROR: "+e.type);
- });
-
- peer.on("disconnected",()=>{
-  setStatus("Disconnected from PeerJS server!");
- });
-
- peer.on("close",()=>{
-  setStatus("Peer closed!");
+  console.error("Peer error:",e);
+  setStatus("Connection error: "+e.type);
  });
 }
+
 
 function joinRoom(){
  const name=getName();
@@ -283,43 +291,26 @@ function joinRoom(){
  }
 
  myName=name;
- setStatus("Connecting to PeerJS...");
+ setStatus("Connecting...");
 
- if(peer){
-  peer.destroy();
-  peer=null;
- }
-
- peer=new Peer(undefined,{
-  debug:2
- });
+ peer=new Peer();
 
  peer.on("open",id=>{
   myId=id;
   myPlayerId=id;
 
-  setStatus("Connecting to host...");
+  hostConnection=peer.connect(code,{reliable:true});
 
-  hostConnection=peer.connect(code,{
-   reliable:true
+  hostConnection.on("data",data=>{
+   handleGuestData(data);
   });
-
-  if(!hostConnection){
-   setStatus("Could not create connection.");
-   return;
-  }
 
   hostConnection.on("open",()=>{
    setStatus("Connected! Joining lobby...");
-
    hostConnection.send({
     type:"join",
     name:myName
    });
-  });
-
-  hostConnection.on("data",data=>{
-   handleGuestData(data);
   });
 
   hostConnection.on("close",()=>{
@@ -332,12 +323,8 @@ function joinRoom(){
   });
  });
 
- peer.on("disconnected",()=>{
-  setStatus("Disconnected from PeerJS server.");
- });
-
  peer.on("error",e=>{
-  console.error("PeerJS error:",e);
+  console.error("Peer error:",e);
   setStatus("Could not join: "+e.type);
  });
 }
