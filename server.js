@@ -100,8 +100,8 @@ function makeGame(players) {
 
   const hunter = list[Math.floor(Math.random() * list.length)];
   hunter.role = "hunter";
-  hunter.x = 1300;
-  hunter.y = 1050;
+  hunter.x = 1250;
+  hunter.y = 1200;
 
   return {
     started: true,
