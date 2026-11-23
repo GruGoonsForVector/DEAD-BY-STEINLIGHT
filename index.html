@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -223,24 +222,24 @@ function createRoom(){
  if(!name)return;
 
  if(!window.Peer){
-  setStatus("PeerJS failed to load. Check your internet.");
+  setStatus("ERROR: PeerJS library did not load!");
   return;
  }
 
  myName=name;
- setStatus("Connecting to PeerJS...");
+ setStatus("Connecting to PeerJS server...");
 
- if(peer){
-  peer.destroy();
-  peer=null;
- }
-
- connections=[];
  peer=new Peer(undefined,{
-  debug:2
+  debug:3,
+  host:"0.peerjs.com",
+  port:443,
+  path:"/",
+  secure:true
  });
 
  peer.on("open",id=>{
+  console.log("PEER CONNECTED:",id);
+
   myId=id;
   myPlayerId=id;
   isHost=true;
@@ -251,44 +250,22 @@ function createRoom(){
   show("lobby");
   hide("menu");
   refreshLobby();
-  setStatus("Room created! Waiting for players...");
- });
-
- peer.on("connection",conn=>{
-  connections.push(conn);
-
-  conn.on("open",()=>{
-   setStatus("Player connected!");
-   conn.send({type:"welcome"});
-  });
-
-  conn.on("data",data=>{
-   handleHostData(conn,data);
-  });
-
-  conn.on("close",()=>{
-   connections=connections.filter(c=>c!==conn);
-   players=players.filter(p=>p.id!==conn.peer);
-   refreshLobby();
-   sendLobby();
-  });
-
-  conn.on("error",e=>{
-   console.error("Player connection error:",e);
-   setStatus("Player connection failed.");
-  });
- });
-
- peer.on("disconnected",()=>{
-  setStatus("Disconnected from PeerJS server.");
+  setStatus("Room created successfully!");
  });
 
  peer.on("error",e=>{
-  console.error("PeerJS error:",e);
-  setStatus("Connection error: "+e.type);
+  console.error("PEER ERROR:",e);
+  setStatus("PEER ERROR: "+e.type);
+ });
+
+ peer.on("disconnected",()=>{
+  setStatus("Disconnected from PeerJS server!");
+ });
+
+ peer.on("close",()=>{
+  setStatus("Peer closed!");
  });
 }
-
 
 function joinRoom(){
  const name=getName();
