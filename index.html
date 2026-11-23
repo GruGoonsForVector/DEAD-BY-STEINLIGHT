@@ -992,45 +992,74 @@ function draw() {
 }
 
 function drawMinimap() {
-  const size=150;
-  const x=innerWidth-size-16;
-  const y=innerHeight-size-16;
+  const size = 165;
+  const x = innerWidth - size - 16;
+  const y = innerHeight - size - 16;
 
   ctx.save();
-  ctx.fillStyle="#07100de8";
-  ctx.fillRect(x,y,size,size);
-  ctx.strokeStyle="#a1b09e";
-  ctx.strokeRect(x,y,size,size);
 
-  const sx=size/mapInfo.width;
-  const sy=size/mapInfo.height;
+  // Premium dark minimap background.
+  ctx.fillStyle = "#07100df2";
+  ctx.fillRect(x, y, size, size);
 
-  obstacles.forEach(o=>{
-    ctx.fillStyle="#69766a";
+  ctx.strokeStyle = "#829487";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, size, size);
+
+  const sx = size / mapInfo.width;
+  const sy = size / mapInfo.height;
+
+  // Buildings.
+  obstacles.forEach(o => {
+    ctx.fillStyle = "#65776a";
     ctx.fillRect(
-      x+o.x*sx,
-      y+o.y*sy,
-      o.w*sx,
-      o.h*sy
+      x + o.x * sx,
+      y + o.y * sy,
+      o.w * sx,
+      o.h * sy
     );
   });
 
-  // Hidden players have null coordinates from the server.
-  gameState.players.forEach(p=>{
-    if(!p.alive||p.escaped||p.hidden) return;
-    if(p.x===null||p.y===null) return;
+  // Only display living teammates.
+  // Epstein has no teammates so his minimap has no player markers.
+  gameState.players.forEach(p => {
+    if (p.id === myId) return;
+    if (p.role !== myRole) return;
+    if (!p.alive || p.escaped) return;
+    if (p.x === null || p.y === null) return;
 
-    ctx.fillStyle=p.role==="hunter"?"#f04450":"#e6e5c7";
+    ctx.fillStyle = "#a9e4b3";
+    ctx.shadowColor = "#a9e4b3";
+    ctx.shadowBlur = 7;
+
     ctx.beginPath();
     ctx.arc(
-      x+p.x*sx,
-      y+p.y*sy,
-      p.id===myId?4:3,
+      x + p.x * sx,
+      y + p.y * sy,
+      4,
       0,
-      Math.PI*2
+      Math.PI * 2
     );
     ctx.fill();
   });
+
+  ctx.shadowBlur = 0;
+
+  // Player's own position.
+  const me = gameState.players.find(p => p.id === myId);
+
+  if (me) {
+    ctx.fillStyle = myRole === "hunter" ? "#e34b55" : "#ffffff";
+    ctx.beginPath();
+    ctx.arc(
+      x + me.x * sx,
+      y + me.y * sy,
+      4,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
 
   ctx.restore();
 }
