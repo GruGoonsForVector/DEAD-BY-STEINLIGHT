@@ -419,7 +419,23 @@ function draw(){
   renderWorld();
   requestAnimationFrame(draw);
 }
+ 
+function buildStaticScene(){
+  sceneCanvas = document.createElement("canvas");
+  sceneCanvas.width = mapInfo.width;
+  sceneCanvas.height = mapInfo.height;
 
+  const originalCtx = ctx;
+  ctx = sceneCanvas.getContext("2d");
+
+  drawIsland();
+  drawObstacles();
+  drawHidingSpots();
+  drawBoat();
+
+  ctx = originalCtx;
+}
+ 
 function renderWorld(){
   const w=innerWidth,h=innerHeight;
   ctx.clearRect(0,0,w,h);
