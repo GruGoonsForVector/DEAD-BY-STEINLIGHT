@@ -309,6 +309,8 @@ socket.on("gameStarted",data=>{
   obstacles = data.obstacles || [];
   hidingSpots = data.hidingSpots || [];
   gameState = data.game;
+
+  buildStaticScene();
   myRole = gameState.players.find(p=>p.id===socket.id)?.role || "escapee";
   $("roleText").textContent = myRole.toUpperCase();
   $("roleText").style.color = myRole==="hunter"?"#ed626c":"#b7d6a7";
