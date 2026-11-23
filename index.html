@@ -5,226 +5,521 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DEAD BY STEINLIGHT</title>
 <script src="/socket.io/socket.io.js"></script>
+
 <style>
 *{box-sizing:border-box}
-:root{--red:#b52b35;--dark:#090b0e;--panel:#14191f;--muted:#9ba4ad}
-body{margin:0;background:#080a0d;color:#eee;font-family:Arial,sans-serif;overflow:hidden}
+
+:root{
+  --red:#b52b35;
+  --dark:#0b0f10;
+  --panel:#171e20;
+  --muted:#aab5b0;
+}
+
+body{
+  margin:0;
+  background:#0b0f10;
+  color:#eee;
+  font-family:Arial,sans-serif;
+  overflow:hidden;
+}
+
 button,input{font:inherit}
-button{background:#8e202b;color:white;border:1px solid #d34b55;padding:13px 20px;cursor:pointer;font-weight:bold;letter-spacing:1px}
+
+button{
+  background:#8e202b;
+  color:white;
+  border:1px solid #d34b55;
+  padding:13px 20px;
+  cursor:pointer;
+  font-weight:bold;
+  letter-spacing:1px;
+}
+
 button:hover{background:#b52b35}
 button:disabled{opacity:.4;cursor:not-allowed}
-input{background:#080b0f;color:white;border:1px solid #46505a;padding:13px;width:100%;outline:none}
+
+input{
+  background:#0c1113;
+  color:white;
+  border:1px solid #46505a;
+  padding:13px;
+  width:100%;
+  outline:none;
+}
+
 input:focus{border-color:#bd3944}
-.screen{display:none;position:absolute;inset:0}
+
+.screen{
+  display:none;
+  position:absolute;
+  inset:0;
+}
+
 .screen.active{display:flex}
-#menu{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#252b30 0%,#0c1014 55%,#050607 100%)}
-.menuBox{width:min(460px,92vw);background:#10151beF;border:1px solid #414a52;padding:32px;box-shadow:0 20px 80px #000}
+
+#menu{
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(
+    ellipse at center,
+    #303a3b 0%,
+    #11191b 60%,
+    #07090a 100%
+  );
+}
+
+.menuBox{
+  width:min(460px,92vw);
+  background:#141c1fee;
+  border:1px solid #505b5e;
+  padding:32px;
+  box-shadow:0 20px 80px #000;
+}
+
 .logo{text-align:center;margin-bottom:28px}
-.logo h1{font-size:clamp(34px,7vw,55px);line-height:.92;margin:0;color:#eee;letter-spacing:4px;text-shadow:3px 3px #8c1c29}
-.logo p{letter-spacing:5px;color:#aeb6bd;font-size:11px}
+
+.logo h1{
+  font-size:clamp(34px,7vw,55px);
+  line-height:.92;
+  margin:0;
+  color:#eee;
+  letter-spacing:4px;
+  text-shadow:3px 3px #8c1c29;
+}
+
+.logo p{
+  letter-spacing:5px;
+  color:#b9c3c5;
+  font-size:11px;
+}
+
 .field{margin:14px 0}
-.field label{display:block;font-size:11px;color:#aeb6bd;letter-spacing:2px;margin-bottom:7px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+
+.field label{
+  display:block;
+  font-size:11px;
+  color:#b9c3c5;
+  letter-spacing:2px;
+  margin-bottom:7px;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:20px;
+}
+
 .actions button{width:100%}
-#status{min-height:22px;color:#e18b8b;font-size:13px;margin-top:15px;text-align:center}
-#lobby{align-items:center;justify-content:center;background:radial-gradient(circle,#1b2229,#07090b)}
-.lobbyBox{width:min(600px,94vw);padding:30px;background:#11171d;border:1px solid #45505a}
+
+#status{
+  min-height:22px;
+  color:#e18b8b;
+  font-size:13px;
+  margin-top:15px;
+  text-align:center;
+}
+
+#lobby{
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(circle,#263032,#080b0c);
+}
+
+.lobbyBox{
+  width:min(600px,94vw);
+  padding:30px;
+  background:#141c1f;
+  border:1px solid #566164;
+}
+
 .lobbyBox h2{letter-spacing:4px;margin-top:0}
-.roomCode{font-size:32px;letter-spacing:8px;color:#f0c6c6;text-align:center;padding:18px;background:#080b0e;margin:15px 0}
+
+.roomCode{
+  font-size:32px;
+  letter-spacing:8px;
+  color:#f0c6c6;
+  text-align:center;
+  padding:18px;
+  background:#080b0e;
+  margin:15px 0;
+}
+
 #players{list-style:none;padding:0;margin:18px 0}
-#players li{padding:12px;background:#202830;margin:6px 0;border-left:3px solid #a72a36}
-.lobbyBottom{display:flex;justify-content:space-between;gap:10px;align-items:center}
+
+#players li{
+  padding:12px;
+  background:#263033;
+  margin:6px 0;
+  border-left:3px solid #a72a36;
+}
+
+.lobbyBottom{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+
 .small{font-size:12px;color:var(--muted)}
-#game{background:#101812}
-#world{width:100%;height:100%;display:block}
-#hud{position:absolute;inset:0;pointer-events:none}
-.hudTop{position:absolute;top:15px;left:15px;right:15px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.hudPanel{background:#090d0de8;border:1px solid #59615b;padding:12px 15px;min-width:150px}
-.hudTitle{font-size:10px;letter-spacing:2px;color:#b6c0b6;margin-bottom:6px}
+
+#game{background:#17251c}
+
+#world{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+#hud{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.hudTop{
+  position:absolute;
+  top:15px;
+  left:15px;
+  right:15px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.hudPanel{
+  background:#101819eF;
+  border:1px solid #66716c;
+  padding:12px 15px;
+  min-width:150px;
+}
+
+.hudTitle{
+  font-size:10px;
+  letter-spacing:2px;
+  color:#c0cbc2;
+  margin-bottom:6px;
+}
+
 #roleText{font-size:19px;font-weight:bold}
-#objective{font-size:13px;max-width:280px;line-height:1.5}
-#taskPanel{position:absolute;left:15px;bottom:15px;width:250px;background:#090d0de8;border:1px solid #59615b;padding:13px}
-.task{font-size:12px;margin:9px 0;color:#d6ddd6}
-.bar{height:5px;background:#303832;margin-top:4px}
-.bar span{display:block;height:100%;background:#b13b43;width:0%}
-#staminaWrap{position:absolute;right:15px;bottom:20px;width:190px;background:#090d0de8;padding:12px;border:1px solid #59615b}
-#stamina{height:9px;background:#303832;margin-top:7px}
-#stamina span{height:100%;display:block;background:#d6d1a1;width:100%}
-#notice{position:absolute;top:105px;left:50%;transform:translateX(-50%);background:#090d0de8;padding:12px 20px;border:1px solid #666;opacity:0;transition:opacity .2s;text-align:center}
+
+#objective{
+  font-size:13px;
+  max-width:280px;
+  line-height:1.5;
+}
+
+#taskPanel{
+  position:absolute;
+  left:15px;
+  bottom:15px;
+  width:250px;
+  background:#101819eF;
+  border:1px solid #66716c;
+  padding:13px;
+}
+
+.task{
+  font-size:12px;
+  margin:9px 0;
+  color:#e0e7df;
+}
+
+.bar{
+  height:5px;
+  background:#39443d;
+  margin-top:4px;
+}
+
+.bar span{
+  display:block;
+  height:100%;
+  background:#b13b43;
+  width:0%;
+}
+
+#staminaWrap{
+  position:absolute;
+  right:15px;
+  bottom:20px;
+  width:190px;
+  background:#101819eF;
+  padding:12px;
+  border:1px solid #66716c;
+}
+
+#stamina{
+  height:9px;
+  background:#39443d;
+  margin-top:7px;
+}
+
+#stamina span{
+  height:100%;
+  display:block;
+  background:#d6d1a1;
+  width:100%;
+}
+
+#notice{
+  position:absolute;
+  top:105px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#101819ee;
+  padding:12px 20px;
+  border:1px solid #777;
+  opacity:0;
+  transition:opacity .2s;
+  text-align:center;
+}
+
 #notice.show{opacity:1}
-#help{position:absolute;right:15px;top:100px;background:#090d0de8;padding:12px;border:1px solid #505850;font-size:11px;line-height:1.8;color:#cbd1cb}
-#gameOver{align-items:center;justify-content:center;background:#050607eF;z-index:10}
-.overBox{text-align:center;padding:40px;background:#14191f;border:1px solid #6c3439;width:min(500px,90vw)}
+
+#help{
+  position:absolute;
+  right:15px;
+  top:100px;
+  background:#101819eF;
+  padding:12px;
+  border:1px solid #59645e;
+  font-size:11px;
+  line-height:1.8;
+  color:#d7dfd8;
+}
+
+#gameOver{
+  align-items:center;
+  justify-content:center;
+  background:#080b0cee;
+  z-index:10;
+}
+
+.overBox{
+  text-align:center;
+  padding:40px;
+  background:#171e20;
+  border:1px solid #6c3439;
+  width:min(500px,90vw);
+}
+
 .overBox h1{font-size:42px;letter-spacing:4px}
 #overTitle{color:#d34a55}
 #overMessage{color:#c0c6ca;line-height:1.5;margin-bottom:25px}
+
 @media(max-width:650px){
- #help{display:none}
- #taskPanel{width:190px;bottom:12px;left:8px}
- #staminaWrap{width:140px;right:8px;bottom:12px}
- .hudTop{top:8px;left:8px;right:8px}
- .hudPanel{min-width:0;padding:9px}
- #objective{max-width:160px}
+  #help{display:none}
+  #taskPanel{width:190px;bottom:12px;left:8px}
+  #staminaWrap{width:140px;right:8px;bottom:12px}
+  .hudTop{top:8px;left:8px;right:8px}
+  .hudPanel{min-width:0;padding:9px}
+  #objective{max-width:160px}
 }
 </style>
 </head>
+
 <body>
 
 <section id="menu" class="screen active">
- <div class="menuBox">
-  <div class="logo">
-   <h1>DEAD BY<br>STEINLIGHT</h1>
-   <p>ONE ISLAND. ONE HUNTER. NO EASY WAY OUT.</p>
+  <div class="menuBox">
+    <div class="logo">
+      <h1>DEAD BY<br>STEINLIGHT</h1>
+      <p>ONE ISLAND. ONE HUNTER. NO EASY WAY OUT.</p>
+    </div>
+
+    <div class="field">
+      <label>PLAYER NAME</label>
+      <input id="name" maxlength="18" placeholder="Enter your name">
+    </div>
+
+    <div class="actions">
+      <button id="createBtn">CREATE ROOM</button>
+      <button id="joinBtn">JOIN ROOM</button>
+    </div>
+
+    <div class="field">
+      <label>ROOM CODE</label>
+      <input id="roomCodeInput" maxlength="6" placeholder="ENTER CODE">
+    </div>
+
+    <div id="status">Connecting to game server...</div>
+    <p class="small" style="text-align:center;margin-top:20px">
+      MULTIPLAYER HORROR SURVIVAL
+    </p>
   </div>
-  <div class="field">
-   <label>PLAYER NAME</label>
-   <input id="name" maxlength="18" placeholder="Enter your name" value="">
-  </div>
-  <div class="actions">
-   <button id="createBtn">CREATE ROOM</button>
-   <button id="joinBtn">JOIN ROOM</button>
-  </div>
-  <div class="field">
-   <label>ROOM CODE</label>
-   <input id="roomCodeInput" maxlength="6" placeholder="ENTER CODE">
-  </div>
-  <div id="status">Connecting to game server...</div>
-  <p class="small" style="text-align:center;margin-top:20px">MULTIPLAYER HORROR SURVIVAL</p>
- </div>
 </section>
 
 <section id="lobby" class="screen">
- <div class="lobbyBox">
-  <h2>ROOM LOBBY</h2>
-  <div class="small">SHARE THIS CODE WITH YOUR FRIENDS</div>
-  <div class="roomCode" id="roomCode">------</div>
-  <div class="small">PLAYERS</div>
-  <ul id="players"></ul>
-  <div class="lobbyBottom">
-   <span class="small" id="lobbyCount">Waiting for players...</span>
-   <button id="startBtn">START GAME</button>
+  <div class="lobbyBox">
+    <h2>ROOM LOBBY</h2>
+    <div class="small">SHARE THIS CODE WITH YOUR FRIENDS</div>
+    <div class="roomCode" id="roomCode">------</div>
+    <div class="small">PLAYERS</div>
+    <ul id="players"></ul>
+
+    <div class="lobbyBottom">
+      <span class="small" id="lobbyCount">Waiting for players...</span>
+      <button id="startBtn">START GAME</button>
+    </div>
+
+    <p class="small">At least 2 players are required. Maximum 5.</p>
+
+    <button id="leaveBtn" style="width:100%;background:#343b42;border-color:#59616b;margin-top:12px">
+      LEAVE ROOM
+    </button>
   </div>
-  <p class="small">At least 2 players are required. Maximum 5.</p>
-  <button id="leaveBtn" style="width:100%;background:#343b42;border-color:#59616b;margin-top:12px">LEAVE ROOM</button>
- </div>
 </section>
 
 <section id="game" class="screen">
- <canvas id="world"></canvas>
- <div id="hud">
-  <div class="hudTop">
-   <div class="hudPanel">
-    <div class="hudTitle">YOUR ROLE</div>
-    <div id="roleText">ESCAPEE</div>
-   </div>
-   <div class="hudPanel">
-    <div class="hudTitle">OBJECTIVE</div>
-    <div id="objective">Complete the repairs and escape by boat.</div>
-   </div>
+  <canvas id="world"></canvas>
+
+  <div id="hud">
+    <div class="hudTop">
+      <div class="hudPanel">
+        <div class="hudTitle">YOUR ROLE</div>
+        <div id="roleText">ESCAPEE</div>
+      </div>
+
+      <div class="hudPanel">
+        <div class="hudTitle">OBJECTIVE</div>
+        <div id="objective">Complete the repairs and escape by boat.</div>
+      </div>
+    </div>
+
+    <div id="help">
+      <b>CONTROLS</b><br>
+      WASD / ARROWS: Move<br>
+      SHIFT: Sprint<br>
+      CTRL: Crouch<br>
+      E: Interact / Hide<br>
+      <span id="hunterHelp">
+        Q: Sprint ability<br>
+        R: Tracking pulse<br>
+        F: Disrupt task
+      </span>
+    </div>
+
+    <div id="taskPanel">
+      <div class="hudTitle">ESCAPE PROGRESS</div>
+      <div id="tasks"></div>
+    </div>
+
+    <div id="staminaWrap">
+      <div class="hudTitle">STAMINA</div>
+      <div id="stamina"><span></span></div>
+    </div>
+
+    <div id="notice"></div>
   </div>
-  <div id="help">
-   <b>CONTROLS</b><br>
-   WASD / ARROWS: Move<br>
-   SHIFT: Sprint<br>
-   CTRL: Crouch<br>
-   E: Interact / Hide<br>
-   <span id="hunterHelp">Q: Sprint ability<br>R: Tracking pulse<br>F: Disrupt task</span>
-  </div>
-  <div id="taskPanel">
-   <div class="hudTitle">ESCAPE PROGRESS</div>
-   <div id="tasks"></div>
-  </div>
-  <div id="staminaWrap">
-   <div class="hudTitle">STAMINA</div>
-   <div id="stamina"><span></span></div>
-  </div>
-  <div id="notice"></div>
- </div>
 </section>
 
 <section id="gameOver" class="screen">
- <div class="overBox">
-  <div class="small">MATCH COMPLETE</div>
-  <h1 id="overTitle">ESCAPE</h1>
-  <div id="overMessage"></div>
-  <button id="backBtn">BACK TO MENU</button>
- </div>
+  <div class="overBox">
+    <div class="small">MATCH COMPLETE</div>
+    <h1 id="overTitle">ESCAPE</h1>
+    <div id="overMessage"></div>
+    <button id="backBtn">BACK TO MENU</button>
+  </div>
 </section>
 
 <script>
 "use strict";
 
-const socket = io();
+const socket = io({
+  reconnection: true,
+  reconnectionAttempts: Infinity
+});
+
 const $ = id => document.getElementById(id);
 
-const screens = ["menu","lobby","game","gameOver"];
-function showScreen(id){
-  screens.forEach(s => $(s).classList.toggle("active",s===id));
+const screens = ["menu", "lobby", "game", "gameOver"];
+
+function showScreen(id) {
+  screens.forEach(s => {
+    $(s).classList.toggle("active", s === id);
+  });
 }
 
-let myId = null;
 let myRole = null;
 let room = null;
 let isHost = false;
 let gameState = null;
-let mapInfo = {width:2800,height:2200};
+let mapInfo = { width: 2800, height: 2200 };
 let obstacles = [];
 let hidingSpots = [];
 let keys = {};
-let lastInput = {};
+let camera = { x: 0, y: 0 };
 let noticeTimer = null;
-let camera = {x:0,y:0};
-let animation = 0;
+let animationRunning = false;
 
 const canvas = $("world");
-let ctx = canvas.getContext("2d");
-let sceneCanvas = null;
+const ctx = canvas.getContext("2d", {
+  alpha: false
+});
 
-function resize(){
-  const dpr = Math.min(window.devicePixelRatio || 1,2);
-  canvas.width = Math.floor(innerWidth*dpr);
-  canvas.height = Math.floor(innerHeight*dpr);
-  canvas.style.width = innerWidth+"px";
-  canvas.style.height = innerHeight+"px";
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+let sceneCanvas = null;
+let sceneCtx = null;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+  canvas.width = Math.floor(innerWidth * dpr);
+  canvas.height = Math.floor(innerHeight * dpr);
+
+  canvas.style.width = innerWidth + "px";
+  canvas.style.height = innerHeight + "px";
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-window.addEventListener("resize",resize);
+
+window.addEventListener("resize", resize);
 resize();
 
-function status(message){
+function status(message) {
   $("status").textContent = message;
 }
 
-function getName(){
+function getName() {
   const name = $("name").value.trim();
-  if(!name){
+
+  if (!name) {
     status("Enter a player name first.");
     $("name").focus();
     return null;
   }
-  return name.slice(0,18);
+
+  return name.slice(0, 18);
 }
 
-function escapeHTML(s){
-  return String(s).replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
   }[c]));
 }
 
-function createRoom(){
+function createRoom() {
   const name = getName();
-  if(!name)return;
-  if(!socket.connected){
+  if (!name) return;
+
+  if (!socket.connected) {
     status("Cannot reach the game server.");
     return;
   }
+
   status("Creating room...");
-  socket.emit("createRoom",{name},result=>{
-    if(!result || !result.ok){
+
+  socket.emit("createRoom", { name }, result => {
+    if (!result || !result.ok) {
       status(result?.error || "Could not create room.");
       return;
     }
-    myId = socket.id;
+
     room = result.code;
     isHost = true;
     $("roomCode").textContent = room;
@@ -232,21 +527,25 @@ function createRoom(){
   });
 }
 
-function joinRoom(){
+function joinRoom() {
   const name = getName();
-  if(!name)return;
+  if (!name) return;
+
   const code = $("roomCodeInput").value.trim().toUpperCase();
-  if(!code){
+
+  if (!code) {
     status("Enter a room code.");
     return;
   }
+
   status("Joining room...");
-  socket.emit("joinRoom",{name,code},result=>{
-    if(!result || !result.ok){
+
+  socket.emit("joinRoom", { name, code }, result => {
+    if (!result || !result.ok) {
       status(result?.error || "Could not join room.");
       return;
     }
-    myId = socket.id;
+
     room = result.code;
     isHost = false;
     $("roomCode").textContent = room;
@@ -257,526 +556,740 @@ function joinRoom(){
 $("createBtn").onclick = createRoom;
 $("joinBtn").onclick = joinRoom;
 
-$("roomCodeInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter")joinRoom();
-});
-$("name").addEventListener("keydown",e=>{
-  if(e.key==="Enter")createRoom();
+$("roomCodeInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") joinRoom();
 });
 
-socket.on("connect",()=>{
-  myId = socket.id;
+$("name").addEventListener("keydown", e => {
+  if (e.key === "Enter") createRoom();
+});
+
+socket.on("connect", () => {
   status("Connected. Create a room or join one.");
 });
 
-socket.on("disconnect",()=>{
-  status("Disconnected from the server. Refresh to reconnect.");
+socket.on("disconnect", () => {
+  status("Disconnected from server. Reconnect and rejoin.");
+  gameState = null;
+  room = null;
+  keys = {};
   showScreen("menu");
 });
 
-socket.on("connect_error",()=>{
+socket.on("connect_error", () => {
   status("Could not connect to the server.");
 });
 
-socket.on("lobby",data=>{
+socket.on("lobby", data => {
   room = data.code;
   isHost = data.host === socket.id;
+
   $("roomCode").textContent = data.code;
-  $("players").innerHTML = data.players.map(p=>
-    `<li>${escapeHTML(p.name)} ${p.id===data.host?"<span style='color:#e6bd78'> • HOST</span>":""}</li>`
+
+  $("players").innerHTML = data.players.map(p =>
+    `<li>${escapeHTML(p.name)} ${
+      p.id === data.host
+        ? "<span style='color:#e6bd78'> • HOST</span>"
+        : ""
+    }</li>`
   ).join("");
-  $("lobbyCount").textContent = `${data.players.length}/5 players`;
-  $("startBtn").disabled = !isHost || data.players.length < 2;
-  $("startBtn").textContent = isHost ? "START GAME" : "WAITING FOR HOST";
-  showScreen("lobby");
+
+  $("lobbyCount").textContent =
+    `${data.players.length}/5 players`;
+
+  $("startBtn").disabled =
+    !isHost || data.players.length < 2;
+
+  $("startBtn").textContent =
+    isHost ? "START GAME" : "WAITING FOR HOST";
+
+  if (!gameState) showScreen("lobby");
 });
 
-$("startBtn").onclick = ()=>{
-  socket.emit("startGame",result=>{
-    if(!result?.ok)showNotice(result?.error || "Could not start game.");
+$("startBtn").onclick = () => {
+  socket.emit("startGame", result => {
+    if (!result?.ok) {
+      showNotice(result?.error || "Could not start game.");
+    }
   });
 };
 
-$("leaveBtn").onclick = ()=>{
+$("leaveBtn").onclick = () => {
   socket.emit("leaveRoom");
+
   room = null;
-  isHost = false;
+  gameState = null;
+  keys = {};
+
   showScreen("menu");
 };
 
-socket.on("gameStarted",data=>{
+socket.on("gameStarted", data => {
   mapInfo = data.map;
   obstacles = data.obstacles || [];
   hidingSpots = data.hidingSpots || [];
   gameState = data.game;
 
-  buildStaticScene();
-  myRole = gameState.players.find(p=>p.id===socket.id)?.role || "escapee";
+  const me = gameState.players.find(p => p.id === socket.id);
+
+  myRole = me?.role || "escapee";
+
   $("roleText").textContent = myRole.toUpperCase();
-  $("roleText").style.color = myRole==="hunter"?"#ed626c":"#b7d6a7";
-  $("hunterHelp").style.display = myRole==="hunter"?"inline":"none";
-  $("objective").textContent = myRole==="hunter"
-    ? "Find and catch every escapee."
-    : "Repair the boat, collect fuel and escape.";
+
+  $("roleText").style.color =
+    myRole === "hunter" ? "#ed626c" : "#b7d6a7";
+
+  $("hunterHelp").style.display =
+    myRole === "hunter" ? "inline" : "none";
+
+  $("objective").textContent =
+    myRole === "hunter"
+      ? "Find and catch every escapee."
+      : "Repair the boat, collect fuel and escape.";
+
+  buildStaticScene();
+  updateHUD();
+
   showScreen("game");
-  showNotice(myRole==="hunter"?"You are the Hunter.":"Repair the boat and escape!");
-  requestAnimationFrame(draw);
+
+  showNotice(
+    myRole === "hunter"
+      ? "You are the Hunter."
+      : "Repair the boat and escape!"
+  );
+
+  startDrawing();
 });
 
-socket.on("state",data=>{
+socket.on("state", data => {
+  if (!gameState) return;
+
   gameState = data;
   updateHUD();
 });
 
-socket.on("notice",message=>showNotice(message));
+socket.on("notice", message => {
+  showNotice(message);
+});
 
-socket.on("gameOver",data=>{
-  $("overTitle").textContent = data.winner==="escapees"?"ESCAPEES WIN":"HUNTER WINS";
-  $("overTitle").style.color = data.winner==="escapees"?"#b6d69b":"#dc5962";
+socket.on("gameOver", data => {
+  $("overTitle").textContent =
+    data.winner === "escapees"
+      ? "ESCAPEES WIN"
+      : "HUNTER WINS";
+
+  $("overTitle").style.color =
+    data.winner === "escapees"
+      ? "#b6d69b"
+      : "#dc5962";
+
   $("overMessage").textContent = data.message;
+
+  keys = {};
   showScreen("gameOver");
 });
 
-$("backBtn").onclick = ()=>{
+$("backBtn").onclick = () => {
   room = null;
   gameState = null;
+  keys = {};
   showScreen("menu");
 };
 
-function showNotice(message){
+function showNotice(message) {
   const el = $("notice");
+
   el.textContent = message;
   el.classList.add("show");
+
   clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(()=>el.classList.remove("show"),2400);
+
+  noticeTimer = setTimeout(() => {
+    el.classList.remove("show");
+  }, 2400);
 }
 
-function updateHUD(){
-  if(!gameState)return;
+function updateHUD() {
+  if (!gameState) return;
 
-  const me = gameState.players.find(p=>p.id===socket.id);
-  if(me){
-    $("stamina").firstElementChild.style.width = me.stamina+"%";
-    if(!me.alive && !me.escaped){
-      $("objective").textContent = "You have been caught. Watch the remaining players.";
+  const me = gameState.players.find(p => p.id === socket.id);
+
+  if (me) {
+    $("stamina").firstElementChild.style.width =
+      me.stamina + "%";
+
+    if (!me.alive && !me.escaped) {
+      $("objective").textContent =
+        "You have been caught. Watch the remaining players.";
     }
   }
 
-  if(myRole==="escapee"){
-    $("tasks").innerHTML = gameState.tasks.map(t=>
-      `<div class="task">${escapeHTML(t.name)} <span style="float:right">${Math.floor(t.progress)}%</span><div class="bar"><span style="width:${t.progress}%"></span></div></div>`
-    ).join("") +
-    `<div class="task">Fuel cans <span style="float:right">${gameState.fuel.filter(f=>f.collected).length}/2</span></div>`;
-  }else{
-    $("tasks").innerHTML = `<div class="task">Escapees remaining: ${gameState.players.filter(p=>p.role==="escapee"&&p.alive&&!p.escaped).length}</div><div class="task">Track and catch the escapees.</div>`;
+  if (myRole === "escapee") {
+    $("tasks").innerHTML =
+      gameState.tasks.map(t => `
+        <div class="task">
+          ${escapeHTML(t.name)}
+          <span style="float:right">${Math.floor(t.progress)}%</span>
+          <div class="bar">
+            <span style="width:${t.progress}%"></span>
+          </div>
+        </div>
+      `).join("") +
+      `<div class="task">
+        Fuel cans
+        <span style="float:right">
+          ${gameState.fuel.filter(f => f.collected).length}/2
+        </span>
+      </div>`;
+  } else {
+    const remaining = gameState.players.filter(p =>
+      p.role === "escapee" && p.alive && !p.escaped
+    ).length;
+
+    $("tasks").innerHTML = `
+      <div class="task">
+        Escapees remaining:
+        <span style="float:right">${remaining}</span>
+      </div>
+      <div class="task">Track and catch the escapees.</div>
+    `;
   }
 }
 
-function keyName(e){
-  if(e.code==="Space")return "space";
+function keyName(e) {
   return e.key.toLowerCase();
 }
 
-window.addEventListener("keydown",e=>{
-  const k=keyName(e);
-  if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();
-  keys[k]=true;
-});
-window.addEventListener("keyup",e=>keys[keyName(e)]=false);
-window.addEventListener("blur",()=>keys={});
+window.addEventListener("keydown", e => {
+  const k = keyName(e);
 
-function makeInput(){
+  if (
+    ["arrowup", "arrowdown", "arrowleft", "arrowright", " "]
+      .includes(k)
+  ) {
+    e.preventDefault();
+  }
+
+  keys[k] = true;
+});
+
+window.addEventListener("keyup", e => {
+  keys[keyName(e)] = false;
+});
+
+window.addEventListener("blur", () => {
+  keys = {};
+});
+
+function makeInput() {
   const input = {
-    up:!!(keys.w||keys.arrowup),
-    down:!!(keys.s||keys.arrowdown),
-    left:!!(keys.a||keys.arrowleft),
-    right:!!(keys.d||keys.arrowright),
-    sprint:!!keys.shift,
-    crouch:!!keys.control,
-    interact:!!keys.e,
-    hide:!!keys.e,
-    pulse:!!keys.r,
-    disrupt:!!keys.f
+    up: !!(keys.w || keys.arrowup),
+    down: !!(keys.s || keys.arrowdown),
+    left: !!(keys.a || keys.arrowleft),
+    right: !!(keys.d || keys.arrowright),
+    sprint: !!keys.shift,
+    crouch: !!keys.control,
+    interact: !!keys.e,
+    hide: !!keys.e,
+    pulse: !!keys.r,
+    disrupt: !!keys.f
   };
 
-  if(myRole==="hunter"){
-    input.sprint = !!(keys.shift||keys.q);
+  if (myRole === "hunter") {
+    input.sprint = !!(keys.shift || keys.q);
   }
 
   return input;
 }
 
-setInterval(()=>{
-  if(!gameState || !$("game").classList.contains("active"))return;
-  const input = makeInput();
-  socket.emit("input",input);
-  lastInput = input;
-},50);
+// Send controls at 30 updates per second.
+setInterval(() => {
+  if (
+    !gameState ||
+    !$("game").classList.contains("active") ||
+    !socket.connected
+  ) return;
 
-function draw(){
-  if(!$("game").classList.contains("active"))return;
-  animation++;
-  renderWorld();
-  requestAnimationFrame(draw);
-}
- 
-function buildStaticScene(){
+  socket.emit("input", makeInput());
+}, 1000 / 30);
+
+// --------------------------------------------------
+// STATIC SCENE
+// --------------------------------------------------
+
+function buildStaticScene() {
   sceneCanvas = document.createElement("canvas");
+
   sceneCanvas.width = mapInfo.width;
   sceneCanvas.height = mapInfo.height;
 
-  const originalCtx = ctx;
-  ctx = sceneCanvas.getContext("2d");
+  sceneCtx = sceneCanvas.getContext("2d");
 
-  drawIsland();
-  drawObstacles();
-  drawHidingSpots();
-  drawBoat();
-
-  ctx = originalCtx;
+  drawIsland(sceneCtx);
+  drawObstacles(sceneCtx);
+  drawHidingSpots(sceneCtx);
+  drawBoat(sceneCtx);
 }
- 
-function renderWorld(){
+
+function drawIsland(g) {
+  g.fillStyle = "#254532";
+  g.fillRect(0, 0, mapInfo.width, mapInfo.height);
+
+  // Subtle grass texture, created only once.
+  g.strokeStyle = "#365a3f";
+  g.lineWidth = 1;
+
+  for (let x = 0; x < mapInfo.width; x += 75) {
+    for (let y = 0; y < mapInfo.height; y += 75) {
+      const n = Math.sin(x * 12.3 + y * 3.7);
+
+      g.globalAlpha = 0.15;
+      g.beginPath();
+      g.moveTo(x + n * 5, y);
+      g.lineTo(x + 8 + n * 5, y - 9);
+      g.stroke();
+    }
+  }
+
+  g.globalAlpha = 1;
+
+  // Water.
+  g.fillStyle = "#285768";
+  g.fillRect(0, 0, mapInfo.width, mapInfo.height);
+
+  // Island shape.
+  g.fillStyle = "#254532";
+  g.beginPath();
+
+  g.moveTo(150, 130);
+  g.lineTo(850, 60);
+  g.lineTo(1650, 110);
+  g.lineTo(2540, 200);
+  g.lineTo(2700, 700);
+  g.lineTo(2630, 1500);
+  g.lineTo(2500, 2050);
+  g.lineTo(1800, 2140);
+  g.lineTo(900, 2100);
+  g.lineTo(200, 1900);
+  g.lineTo(80, 1200);
+
+  g.closePath();
+  g.fill();
+
+  g.strokeStyle = "#819b8d";
+  g.lineWidth = 15;
+  g.stroke();
+
+  // Main walking paths.
+  g.strokeStyle = "#82795b";
+  g.lineWidth = 65;
+  g.lineCap = "round";
+
+  g.beginPath();
+  g.moveTo(350, 350);
+  g.lineTo(1150, 850);
+  g.lineTo(1900, 1000);
+  g.lineTo(2350, 1800);
+  g.stroke();
+
+  g.strokeStyle = "#a69b76";
+  g.lineWidth = 3;
+  g.stroke();
+
+  g.lineCap = "butt";
+
+  // Forest.
+  for (let i = 0; i < 105; i++) {
+    const x = 180 + ((i * 193) % 2420);
+    const y = 170 + ((i * 317) % 1830);
+
+    if (
+      obstacles.some(o =>
+        x > o.x - 60 &&
+        x < o.x + o.w + 60 &&
+        y > o.y - 60 &&
+        y < o.y + o.h + 60
+      )
+    ) continue;
+
+    drawTree(g, x, y, 0.7 + ((i * 17) % 6) / 10);
+  }
+
+  g.strokeStyle = "#18221e";
+  g.lineWidth = 8;
+  g.strokeRect(0, 0, mapInfo.width, mapInfo.height);
+}
+
+function drawTree(g, x, y, s = 1) {
+  g.fillStyle = "#15231a";
+
+  g.beginPath();
+  g.ellipse(x + 7, y + 13, 24 * s, 15 * s, 0, 0, Math.PI * 2);
+  g.fill();
+
+  g.fillStyle = "#594431";
+  g.fillRect(x - 5 * s, y - 2 * s, 10 * s, 25 * s);
+
+  g.fillStyle = "#25432d";
+  g.beginPath();
+  g.arc(x, y - 12 * s, 25 * s, 0, Math.PI * 2);
+  g.fill();
+
+  g.fillStyle = "#365d3b";
+  g.beginPath();
+  g.arc(x - 9 * s, y - 20 * s, 14 * s, 0, Math.PI * 2);
+  g.fill();
+}
+
+function drawObstacles(g) {
+  for (const o of obstacles) {
+    g.fillStyle = "#17201e";
+    g.fillRect(o.x + 8, o.y + 12, o.w, o.h);
+
+    g.fillStyle = "#62645a";
+    g.fillRect(o.x, o.y, o.w, o.h);
+
+    g.fillStyle = "#828273";
+    g.fillRect(o.x + 8, o.y + 8, o.w - 16, 12);
+
+    g.fillStyle = "#343c36";
+    g.fillRect(o.x + 20, o.y + 28, o.w - 40, o.h - 45);
+
+    g.strokeStyle = "#a5a28e";
+    g.lineWidth = 3;
+    g.strokeRect(o.x, o.y, o.w, o.h);
+  }
+}
+
+function drawHidingSpots(g) {
+  for (const s of hidingSpots) {
+    g.fillStyle =
+      s.type === "Bush"
+        ? "#32613b"
+        : "#625344";
+
+    g.beginPath();
+    g.arc(s.x, s.y, 22, 0, Math.PI * 2);
+    g.fill();
+
+    g.strokeStyle = "#aaa582";
+    g.lineWidth = 2;
+    g.stroke();
+  }
+}
+
+function drawBoat(g) {
+  g.save();
+
+  g.translate(2350, 1850);
+  g.rotate(-0.12);
+
+  g.fillStyle = "#17201f";
+  g.beginPath();
+
+  g.moveTo(-95, -35);
+  g.lineTo(85, -35);
+  g.lineTo(115, 0);
+  g.lineTo(80, 45);
+  g.lineTo(-80, 45);
+  g.lineTo(-110, 0);
+
+  g.closePath();
+  g.fill();
+
+  g.fillStyle = "#846344";
+  g.fillRect(-65, -24, 130, 48);
+
+  g.fillStyle = "#c5c0a2";
+  g.fillRect(-12, -17, 24, 34);
+
+  g.restore();
+
+  g.fillStyle = "#e0ddc6";
+  g.font = "bold 13px Arial";
+  g.textAlign = "center";
+  g.fillText("ESCAPE BOAT", 2350, 1780);
+}
+
+// --------------------------------------------------
+// DYNAMIC WORLD
+// --------------------------------------------------
+
+function startDrawing() {
+  if (animationRunning) return;
+
+  animationRunning = true;
+  requestAnimationFrame(draw);
+}
+
+function draw() {
+  if (!$("game").classList.contains("active")) {
+    animationRunning = false;
+    return;
+  }
+
+  renderWorld();
+  requestAnimationFrame(draw);
+}
+
+function renderWorld() {
   const w = innerWidth;
   const h = innerHeight;
 
-  ctx.clearRect(0,0,w,h);
+  const me = gameState?.players.find(p => p.id === socket.id);
 
-  const me = gameState?.players.find(p=>p.id===socket.id);
-  if(!me)return;
+  if (!me || !sceneCanvas) return;
 
-  camera.x = Math.max(0,Math.min(mapInfo.width-w,me.x-w/2));
-  camera.y = Math.max(0,Math.min(mapInfo.height-h,me.y-h/2));
+  const viewW = Math.min(w, mapInfo.width);
+  const viewH = Math.min(h, mapInfo.height);
+
+  camera.x = Math.max(
+    0,
+    Math.min(mapInfo.width - viewW, me.x - viewW / 2)
+  );
+
+  camera.y = Math.max(
+    0,
+    Math.min(mapInfo.height - viewH, me.y - viewH / 2)
+  );
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Draw cached background.
+  ctx.drawImage(
+    sceneCanvas,
+    camera.x,
+    camera.y,
+    viewW,
+    viewH,
+    0,
+    0,
+    viewW,
+    viewH
+  );
 
   ctx.save();
-  ctx.translate(-camera.x,-camera.y);
+  ctx.translate(-camera.x, -camera.y);
 
-  if(sceneCanvas){
-    const sourceW = Math.min(w,mapInfo.width-camera.x);
-    const sourceH = Math.min(h,mapInfo.height-camera.y);
-
-    ctx.drawImage(
-      sceneCanvas,
-      camera.x,camera.y,sourceW,sourceH,
-      camera.x,camera.y,sourceW,sourceH
-    );
-  }
-
-  drawStations();
-  drawPlayers(me);
-  drawVision(me,w,h);
+  drawStations(ctx);
+  drawPlayers(ctx);
 
   ctx.restore();
+
+  // Vision effect only affects the visible screen.
+  drawVision(me, w, h);
 
   drawMinimap(me);
 }
 
-function drawIsland(){
-  ctx.fillStyle="#203b2c";
-  ctx.fillRect(0,0,mapInfo.width,mapInfo.height);
+function drawStations(g) {
+  if (!gameState) return;
 
-  // Grass texture
-  ctx.strokeStyle="#294632";
-  ctx.lineWidth=1;
-  for(let x=0;x<mapInfo.width;x+=55){
-    for(let y=0;y<mapInfo.height;y+=55){
-      const n=Math.sin(x*12.3+y*3.7);
-      ctx.globalAlpha=.18;
-      ctx.beginPath();
-      ctx.moveTo(x+n*5,y);
-      ctx.lineTo(x+8+n*5,y-9);
-      ctx.stroke();
-    }
-  }
-  ctx.globalAlpha=1;
+  for (const t of gameState.tasks) {
+    g.fillStyle = "#303a37";
+    g.fillRect(t.x - 28, t.y - 23, 56, 46);
 
-  // Shore and water
-  ctx.fillStyle="#234b5b";
-  ctx.fillRect(-100,-100,mapInfo.width+200,mapInfo.height+200);
-  ctx.fillStyle="#203b2c";
-  ctx.beginPath();
-  ctx.moveTo(150,130);
-  ctx.lineTo(850,60);
-  ctx.lineTo(1650,110);
-  ctx.lineTo(2540,200);
-  ctx.lineTo(2700,700);
-  ctx.lineTo(2630,1500);
-  ctx.lineTo(2500,2050);
-  ctx.lineTo(1800,2140);
-  ctx.lineTo(900,2100);
-  ctx.lineTo(200,1900);
-  ctx.lineTo(80,1200);
-  ctx.closePath();
-  ctx.fill();
+    g.strokeStyle = "#d0b77d";
+    g.lineWidth = 3;
+    g.strokeRect(t.x - 28, t.y - 23, 56, 46);
 
-  ctx.strokeStyle="#73908b";
-  ctx.lineWidth=15;
-  ctx.stroke();
+    g.fillStyle = "#e2d4a8";
+    g.font = "bold 11px Arial";
+    g.textAlign = "center";
+    g.fillText(t.id.toUpperCase(), t.x, t.y + 4);
 
-  // Paths
-  ctx.strokeStyle="#786f51";
-  ctx.lineWidth=65;
-  ctx.lineCap="round";
-  ctx.beginPath();
-  ctx.moveTo(350,350);
-  ctx.lineTo(1150,850);
-  ctx.lineTo(1900,1000);
-  ctx.lineTo(2350,1800);
-  ctx.stroke();
-  ctx.strokeStyle="#9b906a";
-  ctx.lineWidth=3;
-  ctx.stroke();
-  ctx.lineCap="butt";
+    g.fillStyle = "#111714";
+    g.fillRect(t.x - 30, t.y - 35, 60, 6);
 
-  // Forest trees
-  for(let i=0;i<105;i++){
-    const x=180+((i*193)%2420);
-    const y=170+((i*317)%1830);
-    if(obstacles.some(o=>x>o.x-60&&x<o.x+o.w+60&&y>o.y-60&&y<o.y+o.h+60))continue;
-    drawTree(x,y,0.7+((i*17)%6)/10);
+    g.fillStyle = "#b4d594";
+    g.fillRect(t.x - 30, t.y - 35, 60 * t.progress / 100, 6);
   }
 
-  ctx.strokeStyle="#111a19";
-  ctx.lineWidth=8;
-  ctx.strokeRect(0,0,mapInfo.width,mapInfo.height);
-}
+  for (const f of gameState.fuel) {
+    if (f.collected) continue;
 
-function drawTree(x,y,s=1){
-  ctx.fillStyle="#101e18";
-  ctx.beginPath();
-  ctx.ellipse(x+7,y+13,24*s,15*s,0,0,Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle="#4b3929";
-  ctx.fillRect(x-5*s,y-2*s,10*s,25*s);
-  ctx.fillStyle="#183322";
-  ctx.beginPath();
-  ctx.arc(x,y-12*s,25*s,0,Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle="#284b31";
-  ctx.beginPath();
-  ctx.arc(x-9*s,y-20*s,14*s,0,Math.PI*2);
-  ctx.fill();
-}
+    g.fillStyle = "#e0bd4e";
+    g.fillRect(f.x - 9, f.y - 15, 18, 30);
 
-function drawObstacles(){
-  for(const o of obstacles){
-    ctx.fillStyle="#121719";
-    ctx.fillRect(o.x+8,o.y+12,o.w,o.h);
-    ctx.fillStyle="#55564d";
-    ctx.fillRect(o.x,o.y,o.w,o.h);
-    ctx.fillStyle="#77766a";
-    ctx.fillRect(o.x+8,o.y+8,o.w-16,12);
-    ctx.fillStyle="#292e2b";
-    ctx.fillRect(o.x+20,o.y+28,o.w-40,o.h-45);
-    ctx.strokeStyle="#a19b83";
-    ctx.lineWidth=3;
-    ctx.strokeRect(o.x,o.y,o.w,o.h);
+    g.fillStyle = "#59451f";
+    g.fillRect(f.x - 5, f.y - 20, 10, 6);
+
+    g.fillStyle = "#fff1a7";
+    g.fillRect(f.x - 5, f.y - 8, 10, 5);
   }
 }
 
-function drawStations(){
-  if(!gameState)return;
-  for(const t of gameState.tasks){
-    ctx.fillStyle="#252b2b";
-    ctx.fillRect(t.x-28,t.y-23,56,46);
-    ctx.strokeStyle="#c2a96e";
-    ctx.lineWidth=3;
-    ctx.strokeRect(t.x-28,t.y-23,56,46);
-    ctx.fillStyle="#d6c58e";
-    ctx.font="bold 11px Arial";
-    ctx.textAlign="center";
-    ctx.fillText(t.id.toUpperCase(),t.x,t.y+4);
-    ctx.fillStyle="#080b0b";
-    ctx.fillRect(t.x-30,t.y-35,60,6);
-    ctx.fillStyle="#a9c987";
-    ctx.fillRect(t.x-30,t.y-35,60*t.progress/100,6);
-  }
+function drawPlayers(g) {
+  if (!gameState) return;
 
-  for(const f of gameState.fuel){
-    if(f.collected)continue;
-    ctx.fillStyle="#d6b642";
-    ctx.fillRect(f.x-9,f.y-15,18,30);
-    ctx.fillStyle="#46371a";
-    ctx.fillRect(f.x-5,f.y-20,10,6);
-    ctx.fillStyle="#fff1a7";
-    ctx.fillRect(f.x-5,f.y-8,10,5);
-  }
-}
+  for (const p of gameState.players) {
+    if (!p.alive || p.escaped) continue;
+    if (p.hidden && p.id !== socket.id) continue;
 
-function drawHidingSpots(){
-  for(const s of hidingSpots){
-    ctx.fillStyle=s.type==="Bush"?"#1d492b":"#544a3e";
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,22,0,Math.PI*2);
-    ctx.fill();
-    ctx.strokeStyle="#9c9a72";
-    ctx.lineWidth=2;
-    ctx.stroke();
-  }
-}
+    const hunter = p.role === "hunter";
 
-function drawBoat(){
-  ctx.save();
-  ctx.translate(2350,1850);
-  ctx.rotate(-.12);
-  ctx.fillStyle="#111619";
-  ctx.beginPath();
-  ctx.moveTo(-95,-35);
-  ctx.lineTo(85,-35);
-  ctx.lineTo(115,0);
-  ctx.lineTo(80,45);
-  ctx.lineTo(-80,45);
-  ctx.lineTo(-110,0);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle="#72543b";
-  ctx.fillRect(-65,-24,130,48);
-  ctx.fillStyle="#c5c0a2";
-  ctx.fillRect(-12,-17,24,34);
-  ctx.restore();
-  ctx.fillStyle="#d6d4bd";
-  ctx.font="bold 13px Arial";
-  ctx.textAlign="center";
-  ctx.fillText("ESCAPE BOAT",2350,1780);
-}
+    g.save();
+    g.translate(p.x, p.y);
 
-function drawPlayers(me){
-  if(!gameState)return;
+    g.fillStyle = "#0009";
+    g.beginPath();
+    g.ellipse(0, 15, 17, 8, 0, 0, Math.PI * 2);
+    g.fill();
 
-  for(const p of gameState.players){
-    if(!p.alive||p.escaped)continue;
-    if(p.hidden && p.id!==socket.id)continue;
+    g.fillStyle = hunter ? "#8d2935" : "#c0c4b1";
+    g.beginPath();
+    g.arc(0, 0, hunter ? 15 : 12, 0, Math.PI * 2);
+    g.fill();
 
-    const hunter=p.role==="hunter";
-    ctx.save();
-    ctx.translate(p.x,p.y);
+    g.fillStyle = hunter ? "#edaaaa" : "#394e46";
+    g.beginPath();
+    g.arc(0, -5, 7, 0, Math.PI * 2);
+    g.fill();
 
-    ctx.fillStyle="#0009";
-    ctx.beginPath();
-    ctx.ellipse(0,15,17,8,0,0,Math.PI*2);
-    ctx.fill();
+    g.strokeStyle = "#111";
+    g.lineWidth = 2;
+    g.stroke();
 
-    ctx.fillStyle=hunter?"#761f29":"#b4b5a3";
-    ctx.beginPath();
-    ctx.arc(0,0,hunter?15:12,0,Math.PI*2);
-    ctx.fill();
+    if (p.id === socket.id) {
+      g.strokeStyle = "#f4e5a4";
+      g.lineWidth = 2;
 
-    ctx.fillStyle=hunter?"#e6a0a0":"#293a36";
-    ctx.beginPath();
-    ctx.arc(0,-5,7,0,Math.PI*2);
-    ctx.fill();
-
-    ctx.strokeStyle="#111";
-    ctx.lineWidth=2;
-    ctx.stroke();
-
-    if(p.id===socket.id){
-      ctx.strokeStyle="#f4e5a4";
-      ctx.lineWidth=2;
-      ctx.beginPath();
-      ctx.arc(0,0,21,0,Math.PI*2);
-      ctx.stroke();
+      g.beginPath();
+      g.arc(0, 0, 21, 0, Math.PI * 2);
+      g.stroke();
     }
 
-    ctx.restore();
+    g.restore();
 
-    ctx.font="bold 12px Arial";
-    ctx.textAlign="center";
-    ctx.fillStyle="#fff";
-    ctx.shadowColor="#000";
-    ctx.shadowBlur=4;
-    ctx.fillText(p.name,p.x,p.y-25);
-    ctx.shadowBlur=0;
+    g.font = "bold 12px Arial";
+    g.textAlign = "center";
+    g.fillStyle = "#fff";
+    g.shadowColor = "#000";
+    g.shadowBlur = 4;
+    g.fillText(p.name, p.x, p.y - 25);
+    g.shadowBlur = 0;
   }
 }
 
-function drawVision(me,w,h){
-  if(!me)return;
+// Slightly brighter visibility while keeping the horror atmosphere.
+function drawVision(me, w, h) {
+  if (!me) return;
 
-  const radius = me.role==="hunter" ? 210 : 340;
+  const radius = me.role === "hunter" ? 270 : 390;
 
   ctx.save();
 
-  // Only shade the visible screen area
+  // Limit darkness to the visible screen.
+  ctx.fillStyle = "#0007";
+  ctx.fillRect(0, 0, w, h);
+
+  const screenX = me.x - camera.x;
+  const screenY = me.y - camera.y;
+
+  // Remove darkness around the player.
+  ctx.globalCompositeOperation = "destination-out";
+
   ctx.beginPath();
-  ctx.rect(camera.x,camera.y,w,h);
-  ctx.clip();
-
-  ctx.fillStyle="#0009";
-  ctx.fillRect(camera.x,camera.y,w,h);
-
-  // Create the player's visible area
-  ctx.globalCompositeOperation="destination-out";
-
-  ctx.beginPath();
-  ctx.arc(me.x,me.y,radius,0,Math.PI*2);
+  ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.globalCompositeOperation="source-over";
+  ctx.globalCompositeOperation = "source-over";
 
-  const grad=ctx.createRadialGradient(
-    me.x,me.y,radius*.55,
-    me.x,me.y,radius
+  // Soft edge around the visible area.
+  const grad = ctx.createRadialGradient(
+    screenX,
+    screenY,
+    radius * 0.55,
+    screenX,
+    screenY,
+    radius
   );
 
-  grad.addColorStop(0,"#0000");
-  grad.addColorStop(1,"#0005");
+  grad.addColorStop(0, "#0000");
+  grad.addColorStop(1, "#0006");
 
-  ctx.fillStyle=grad;
+  ctx.fillStyle = grad;
+
   ctx.beginPath();
-  ctx.arc(me.x,me.y,radius,0,Math.PI*2);
+  ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
   ctx.fill();
 
-  if(me.pulse>0){
-    ctx.strokeStyle="#b6d8ff";
-    ctx.lineWidth=4;
-    ctx.globalAlpha=me.pulse/90;
+  if (me.pulse > 0) {
+    ctx.strokeStyle = "#b6d8ff";
+    ctx.lineWidth = 4;
+    ctx.globalAlpha = me.pulse / 90;
 
     ctx.beginPath();
     ctx.arc(
-      me.x,
-      me.y,
-      Math.max(0,(90-me.pulse)*7),
+      screenX,
+      screenY,
+      Math.max(0, (90 - me.pulse) * 7),
       0,
-      Math.PI*2
+      Math.PI * 2
     );
 
     ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   ctx.restore();
 }
 
-function drawMinimap(me){
-  const mw=150,mh=118,x=innerWidth-mw-15,y=innerHeight-mh-15;
-  ctx.fillStyle="#080c0de8";
-  ctx.fillRect(x,y,mw,mh);
-  ctx.strokeStyle="#879187";
-  ctx.strokeRect(x,y,mw,mh);
+function drawMinimap(me) {
+  const mw = 150;
+  const mh = 118;
+  const x = innerWidth - mw - 15;
+  const y = innerHeight - mh - 15;
 
-  const sx=mw/mapInfo.width,sy=mh/mapInfo.height;
-  ctx.fillStyle="#31533a";
-  ctx.fillRect(x+2,y+2,mw-4,mh-4);
+  ctx.fillStyle = "#101819ee";
+  ctx.fillRect(x, y, mw, mh);
 
-  for(const o of obstacles){
-    ctx.fillStyle="#5b5b51";
-    ctx.fillRect(x+o.x*sx,y+o.y*sy,o.w*sx,o.h*sy);
+  ctx.strokeStyle = "#9aa69d";
+  ctx.strokeRect(x, y, mw, mh);
+
+  const sx = mw / mapInfo.width;
+  const sy = mh / mapInfo.height;
+
+  ctx.fillStyle = "#35583d";
+  ctx.fillRect(x + 2, y + 2, mw - 4, mh - 4);
+
+  for (const o of obstacles) {
+    ctx.fillStyle = "#66675b";
+    ctx.fillRect(
+      x + o.x * sx,
+      y + o.y * sy,
+      o.w * sx,
+      o.h * sy
+    );
   }
 
-  if(gameState){
-    for(const p of gameState.players){
-      if(!p.alive||p.escaped)continue;
-      ctx.fillStyle=p.role==="hunter"?"#ed4e59":"#e7e5ce";
+  if (gameState) {
+    for (const p of gameState.players) {
+      if (!p.alive || p.escaped) continue;
+
+      ctx.fillStyle =
+        p.role === "hunter"
+          ? "#ed4e59"
+          : "#eee9d0";
+
       ctx.beginPath();
-      ctx.arc(x+p.x*sx,y+p.y*sy,3,0,Math.PI*2);
+      ctx.arc(
+        x + p.x * sx,
+        y + p.y * sy,
+        3,
+        0,
+        Math.PI * 2
+      );
+
       ctx.fill();
     }
   }
 
-  ctx.fillStyle="#fff";
-  ctx.font="9px Arial";
-  ctx.fillText("ISLAND",x+6,y+12);
+  ctx.fillStyle = "#fff";
+  ctx.font = "9px Arial";
+  ctx.fillText("ISLAND", x + 6, y + 12);
 }
+
 </script>
 </body>
 </html>
