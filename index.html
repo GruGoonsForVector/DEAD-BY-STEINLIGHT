@@ -220,7 +220,10 @@ function hide(id){$(id).classList.add("hidden")}
 function createRoom(){
  const name=getName();
  if(!name)return;
- if(!window.Peer){setStatus("PeerJS failed to load. Check your internet connection.");return}
+ if(!window.Peer){
+  setStatus("PeerJS failed to load. Check your internet.");
+  return;
+ }
 
  myName=name;
  setStatus("Creating room...");
@@ -232,27 +235,37 @@ function createRoom(){
   isHost=true;
   players=[createPlayer(id,myName)];
   game=newGame();
-  show("lobby");hide("menu");
+
   $("roomCode").value=id;
+  show("lobby");
+  hide("menu");
   refreshLobby();
  });
 
  peer.on("connection",conn=>{
+  connections.push(conn);
+
+  conn.on("data",data=>handleHostData(conn,data));
+
   conn.on("open",()=>{
-   connections.push(conn);
-   conn.on("data",data=>handleHostData(conn,data));
-   conn.on("close",()=>{
-    connections=connections.filter(c=>c!==conn);
-    players=players.filter(p=>p.id!==conn.peer);
-    refreshLobby();
-    sendLobby();
-   });
    conn.send({type:"welcome"});
+  });
+
+  conn.on("close",()=>{
+   connections=connections.filter(c=>c!==conn);
+   players=players.filter(p=>p.id!==conn.peer);
    refreshLobby();
+   sendLobby();
+  });
+
+  conn.on("error",()=>{
+   setStatus("A player connection failed.");
   });
  });
 
- peer.on("error",e=>setStatus("Connection error: "+e.type));
+ peer.on("error",e=>{
+  setStatus("Connection error: "+e.type);
+ });
 }
 
 function joinRoom(){
