@@ -271,28 +271,51 @@ function createRoom(){
 function joinRoom(){
  const name=getName();
  if(!name)return;
+
  const code=$("joinCode").value.trim();
- if(!code){setStatus("Enter a room code.");return}
- if(!window.Peer){setStatus("PeerJS failed to load.");return}
+ if(!code){
+  setStatus("Enter a room code.");
+  return;
+ }
+
+ if(!window.Peer){
+  setStatus("PeerJS failed to load.");
+  return;
+ }
 
  myName=name;
- setStatus("Joining room...");
+ setStatus("Connecting...");
+
  peer=new Peer();
 
  peer.on("open",id=>{
   myId=id;
   myPlayerId=id;
+
   hostConnection=peer.connect(code,{reliable:true});
-  hostConnection.on("open",()=>{
-   hostConnection.send({type:"join",name:myName});
-   setStatus("Connected!");
-  });
+
   hostConnection.on("data",handleGuestData);
-  hostConnection.on("error",()=>setStatus("Connection failed."));
-  hostConnection.on("close",()=>setStatus("Host disconnected."));
+
+  hostConnection.on("open",()=>{
+   setStatus("Connected! Joining lobby...");
+   hostConnection.send({
+    type:"join",
+    name:myName
+   });
+  });
+
+  hostConnection.on("close",()=>{
+   setStatus("Disconnected from host.");
+  });
+
+  hostConnection.on("error",()=>{
+   setStatus("Connection failed.");
+  });
  });
 
- peer.on("error",e=>setStatus("Could not join: "+e.type));
+ peer.on("error",e=>{
+  setStatus("Could not join: "+e.type);
+ });
 }
 
 function handleHostData(conn,data){
@@ -646,15 +669,28 @@ function loop(now){
  lastFrame=now;
 
  if(isHost){
+  // IMPORTANT: Apply the host's own keyboard inputs.
+  const hostPlayer=players.find(p=>p.id===myPlayerId);
+
+  if(hostPlayer){
+   hostPlayer.input={...localInput};
+  }
+
   updateHost(dt);
+
   sendTimer+=dt;
-  if(sendTimer>.08){sendTimer=0;sendState()}
+
+  if(sendTimer>.08){
+   sendTimer=0;
+   sendState();
+  }
  }else{
   sendInput();
  }
 
  render();
  updateHUD();
+
  requestAnimationFrame(loop);
 }
 
